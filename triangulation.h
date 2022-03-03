@@ -18,10 +18,17 @@ struct Triangle
 class Triangulation
 {
 public:
+    //Generates a regular, square triangulation over (0,0),(1,1) with n subdivisions (0 being a single square made of 2 triangles)
+    explicit Triangulation(std::size_t n=0);
     Vec2 operator[](VertexIndice) const;
     Vec2& operator[](VertexIndice);
-    std::vector<Triangle> triangles() const;
+    const std::vector<Vec2>& vertices() const;
+    const std::vector<Triangle>& triangles() const;
     VertexIndice size() const;
+
+private:
+    std::vector<Vec2> _vertices;
+    std::vector<Triangle> _triangles;
 };
 
 #endif // TRIANGULATION_H
