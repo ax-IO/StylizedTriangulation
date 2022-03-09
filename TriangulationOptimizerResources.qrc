@@ -4,5 +4,6 @@
         <file>Shaders/TriangulationOptimizer/fragment1.glsl</file>
         <file>Shaders/TriangulationOptimizer/fragment2.glsl</file>
         <file>Shaders/TriangulationOptimizer/vertex.glsl</file>
+        <file>toast.png</file>
     </qresource>
 </RCC>
