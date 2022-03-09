@@ -2,17 +2,15 @@
 #define RENDERER_H
 
 #include "triangulation.h"
-#include <QtOpenGL>
-#include <QOpenGLFunctions_2_0>
-#include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
 #include <iostream>
+#include <QOpenGLShader>
+#include <QOpenGLBuffer>
 
 class Renderer
 {
 
 private:
-    QOpenGLContext *context;
     QOpenGLShaderProgram program;
     QOpenGLBuffer vertex_buffer;
     QOpenGLBuffer indice_buffer;
@@ -22,6 +20,8 @@ public:
     void render(const Triangulation&, unsigned int);
     void init_buffers(const Triangulation&);
     void init_GL();
+
+    ~Renderer();
 };
 
 #endif // RENDERER_H
