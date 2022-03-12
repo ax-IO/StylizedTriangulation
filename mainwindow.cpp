@@ -22,12 +22,16 @@ bool MainWindow::event(QEvent *event)
     context.create();
     context.makeCurrent(this);
 
-    Triangulation tri{1};
+    Triangulation tri{2};
     Renderer renderer;
     renderer.render(tri, 0);
 
     for(Vec2 coord : tri.vertices()){
         std::cout<<"("<<coord.x<<", "<<coord.y<<")"<<std::endl;
+    }
+
+    for(Triangle tr : tri.triangles()){
+        std::cout<<"a,b,c: "<<tr.a<<", "<<tr.b<<", "<<tr.c<<std::endl;
     }
     std::cout << "Coucou" << std::endl;
     context.swapBuffers(this);
