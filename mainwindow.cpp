@@ -22,9 +22,22 @@ bool MainWindow::event(QEvent *event)
     context.create();
     context.makeCurrent(this);
 
-    Triangulation tri{2};
+    QImage img(QString(":/toast.png"));
+//    QImage img(QString(":/capy.png"));
+
+    img.convertTo(QImage::Format_RGBA8888);
+
+    //texture setup
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    Triangulation tri{0};
     Renderer renderer;
-    renderer.render(tri, 0);
+    renderer.render(tri, tex);
 
     for(Vec2 coord : tri.vertices()){
         std::cout<<"("<<coord.x<<", "<<coord.y<<")"<<std::endl;

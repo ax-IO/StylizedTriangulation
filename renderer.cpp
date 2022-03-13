@@ -55,7 +55,17 @@ void Renderer::init_GL(){
 void Renderer::render(const Triangulation& tri, unsigned int tex){
     init_GL();
     init_buffers(tri);
-    glViewport(0, 0, 512, 512);
+    GLuint sampler_loc = program.uniformLocation("img");
+
+
+    int h,w;
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+
+    std::cout<<"texture w, h : "<<w<< ", "<<h<<std::endl;
+    glViewport(0, 0, w, h);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -66,6 +76,9 @@ void Renderer::render(const Triangulation& tri, unsigned int tex){
     vertex_buffer.bind();
     glVertexPointer(2, GL_FLOAT, 0, NULL);
     vertex_buffer.release();
+
+    //TEXTURE
+    program.setUniformValue(sampler_loc, 0);
 
     std::cout<<tri.triangles().size()*3<<std::endl;
     //DRAW
