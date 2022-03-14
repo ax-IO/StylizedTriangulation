@@ -6,14 +6,18 @@
 #include <iostream>
 #include <QOpenGLShader>
 #include <QOpenGLBuffer>
+#include <QOpenGLExtraFunctions>
 
 class Renderer
 {
 
 private:
-    QOpenGLShaderProgram program;
+    QOpenGLShaderProgram program[2];
     QOpenGLBuffer vertex_buffer;
     QOpenGLBuffer indice_buffer;
+    GLuint storage_buffer;
+
+    QOpenGLExtraFunctions* gl_fct;
 
 public:
     Renderer();

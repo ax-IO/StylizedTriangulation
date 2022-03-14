@@ -4,5 +4,6 @@
         <file>shaders/fragment_shader.glsl</file>
         <file>toast.png</file>
         <file>capy.png</file>
+        <file>shaders/fragment_shader_final.glsl</file>
     </qresource>
 </RCC>

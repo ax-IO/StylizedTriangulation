@@ -14,4 +14,5 @@ void main(void)
 {
     gl_Position = vec4(vertex *2 - 1, 0, 1.);
     uv = upside_down(vertex);
+//    uv = vertex;
 }
