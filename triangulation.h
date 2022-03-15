@@ -3,7 +3,7 @@
 
 #include <vector>
 
-using VertexIndice = std::size_t;
+using VertexIndice = unsigned;
 
 struct Vec2
 {
