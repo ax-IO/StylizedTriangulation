@@ -56,6 +56,9 @@ bool GLWindow::event(QEvent *event) {
 
 //  Triangulation tri{12};
   Triangulation tri{50};
+//  TriangulationOptimizer tri_opt;
+//  tri_opt.optimize(tri, tex);
+
 
   Renderer renderer;
   renderer.render(tri, tex);

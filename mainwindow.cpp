@@ -202,9 +202,14 @@ static void initializeImageFileDialog(QFileDialog &dialog,
     mimeTypeFilters.append(mimeTypeName);
   mimeTypeFilters.sort();
   dialog.setMimeTypeFilters(mimeTypeFilters);
-  dialog.selectMimeTypeFilter("image/jpeg");
+//  dialog.selectMimeTypeFilter("image/jpeg");
+  dialog.selectMimeTypeFilter("image/png");
+//  dialog.selectMimeTypeFilter("application/octet-stream");
+
   if (acceptMode == QFileDialog::AcceptSave)
     dialog.setDefaultSuffix("jpg");
+//    dialog.setDefaultSuffix("png");
+
 }
 
 void MainWindow::open() {
