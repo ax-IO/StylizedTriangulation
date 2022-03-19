@@ -23,18 +23,7 @@
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), scrollArea(new QScrollArea) {
-
-  GLWidget *openGL = new GLWidget(&helper, this);
-
-  QTimer *timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, openGL, &GLWidget::animate);
-  timer->start(50);
-
-  scrollArea->setBackgroundRole(QPalette::Dark);
-  scrollArea->setWidget(openGL);
-  scrollArea->setVisible(false);
-  setCentralWidget(scrollArea);
+    : QMainWindow(parent) {
 
   createActions();
   resize(QGuiApplication::primaryScreen()->availableSize() * (3.0f / 5.0f));
@@ -54,43 +43,34 @@ bool MainWindow::loadFile(const QString &fileName) {
     return false;
   }
 
-    setImage(newImage);
+  setImage(newImage);
   //  loadImageToTexture(newImage);
   updateActions();
+//  qDebug()<< << Qt::endl;
 
-  // Trouver la fonction qui charge une image en texture (renvoyer le GLUint)
-  //  Triangulation t;
-  //  Triangulation t{12}
-  //  Renderer renderer;
-  //  renderer.render(t, texture);
 
-  //  qDebug() << texture << Qt::endl;
-
-//    GLWindow* glwindow = new GLWindow(texture);
-  GLWindow *glwindow = new GLWindow(fileName);
-
-  //  glwindow->setWidth(512);
-  glwindow->setWidth(image.width());
-  //  glwindow->setHeight(512);
-  glwindow->setHeight(image.height());
-
-  glwindow->show();
-  //  this->hide();
-
-  scrollArea->setVisible(true);
   setWindowFilePath(fileName);
-  qDebug() << fileName << Qt::endl;
+
   const QString message = tr("Opened \"%1\", %2x%3, Depth: %4")
                               .arg(QDir::toNativeSeparators(fileName))
                               .arg(image.width())
                               .arg(image.height())
                               .arg(image.depth());
   statusBar()->showMessage(message);
+  int filebar_height=34;
+  int statusbar_height=27;
+
+  resize(image.width(), image.height()+filebar_height+statusbar_height);
+
+  GLWidget *openGL = new GLWidget(fileName, this);
+  setCentralWidget(openGL);
+
   return true;
 }
 
 void MainWindow::createActions() {
   QMenu *fileMenu = menuBar()->addMenu(tr("&Fichier"));
+
 
   QAction *openAct =
       fileMenu->addAction(tr("&Ouvrir Image..."), this, &MainWindow::open);

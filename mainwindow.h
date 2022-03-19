@@ -4,9 +4,7 @@
 #include "renderer.h"
 #include "triangulation.h"
 #include "triangulationoptimizer.h"
-#include "helper.h"
 #include "glwidget.h"
-#include "glwindow.h"
 
 
 #include <QWidget>
@@ -33,7 +31,6 @@ private:
   void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
   QImage image;
-  QLabel *imageLabel;
   QScrollArea *scrollArea;
   double scaleFactor = 1;
 
@@ -44,8 +41,6 @@ private:
   QAction *zoomOutAct;
   QAction *normalSizeAct;
   QAction *fitToWindowAct;
-
-  Helper helper;
 
   GLuint texture;
 

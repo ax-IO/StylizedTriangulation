@@ -10,8 +10,6 @@ CONFIG += c++20
 
 SOURCES += \
     glwidget.cpp \
-    glwindow.cpp \
-    helper.cpp \
     main.cpp \
     mainwindow.cpp \
     renderer.cpp \
@@ -20,8 +18,6 @@ SOURCES += \
 
 HEADERS += \
     glwidget.h \
-    glwindow.h \
-    helper.h \
     mainwindow.h \
     renderer.h \
     triangulation.h \

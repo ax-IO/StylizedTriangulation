@@ -1,24 +1,47 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
+#include <QColor>
+#include <QOpenGLBuffer>
+#include <QOpenGLExtraFunctions>
+#include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 
-class Helper;
-class GLWidget : public QOpenGLWidget {
+#include <QPoint>
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QOpenGLContext>
+
+#include "triangulation.h"
+#include "triangulationoptimizer.h"
+#include "renderer.h"
+
+#define RGB_MIN 0.0f
+#define RGB_MAX 255.0f
+class GLWidget : public QOpenGLWidget, public QOpenGLFunctions {
   Q_OBJECT
 
 public:
-  GLWidget(Helper *helper, QWidget *parent);
+  GLWidget(QString filepath, QWidget *parent = nullptr);
 
-public slots:
-  void animate();
-
+//~GLWidget();
 protected:
-  void paintEvent(QPaintEvent *event) override;
+  void initializeGL() override;
+  void paintGL() override;
+  void resizeGL(int w, int h) override;
+  void mousePressEvent(QMouseEvent *event) override;
+private:
+  void qColorToRGB(const QColor &C, float&r, float &g, float &b) const;
+  float normalize_0_1 (float val, float min, float max)const;
 
 private:
-  Helper *helper;
-  int elapsed;
+  GLuint tex;
+  QString fp ;
+
+  QOpenGLExtraFunctions* gl_fct;
+
+  QPoint point;
 };
+
 
 #endif // GLWIDGET_H

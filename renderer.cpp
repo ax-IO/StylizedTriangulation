@@ -92,8 +92,8 @@ void Renderer::render(const Triangulation& tri, unsigned int tex){
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
-    std::cout<<"texture w, h : "<<w<< ", "<<h<<std::endl;
-    glViewport(0, 0, w, h);
+//    std::cout<<"texture w, h : "<<w<< ", "<<h<<std::endl;
+//    glViewport(0, 0, w, h);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnableClientState(GL_VERTEX_ARRAY);
