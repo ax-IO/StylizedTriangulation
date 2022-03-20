@@ -3,6 +3,90 @@
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
 
+struct TriangulationOptimizer::ErrorData
+{
+    GLuint error_total = 0;
+    GLuint count = 0;
+};
+
+namespace
+{
+    float sqrDist(Vec2 a, Vec2 b)
+    {
+        return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+    }
+
+    struct TriangleData
+    {
+        GLuint color_total_r = 0;
+        GLuint color_total_g = 0;
+        GLuint color_total_b = 0;
+        GLuint count = 0;
+    };
+
+    auto computeTrianglesPerVertex(const Triangulation& triangulation)
+    {
+        std::vector<std::vector<std::pair<unsigned,unsigned char>>> result(triangulation.size());
+        for(unsigned i = 0; i < triangulation.triangles().size(); ++i)
+        {
+            Triangle triangle = triangulation.triangles()[i];
+            result[triangle.a].emplace_back(i,0);
+            result[triangle.b].emplace_back(i,1);
+            result[triangle.c].emplace_back(i,2);
+        }
+        return result;
+    }
+
+    auto computeRegularisationGradients(const Triangulation& triangulation, const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex, float pixel_width, float pixel_height)
+    {
+        std::vector<Vec2> result(triangulation.size());
+        for(VertexIndice i = 0; i < result.size(); ++i)
+        {
+            auto& neighbor_tris = triangles_per_vertex[i];
+            Vec2 point = triangulation[i];
+            float energies[4]{};
+            Vec2 offsets[4]{{pixel_width,0},{0,pixel_height},{-pixel_width,0},{0,-pixel_height}};
+            for(int i = 0; i < 4; ++i)
+            {
+                Vec2 p{point.x + offsets[i].x, point.y + offsets[i].y};
+                for(auto [tri_id, pos] : neighbor_tris)
+                {
+                    if(pos != 0) energies[i] += sqrDist(p, triangulation[triangulation.triangles()[tri_id].a]);
+                    if(pos != 1) energies[i] += sqrDist(p, triangulation[triangulation.triangles()[tri_id].b]);
+                    if(pos != 2) energies[i] += sqrDist(p, triangulation[triangulation.triangles()[tri_id].c]);
+                }
+            }
+            auto& [right_energy, up_energy, left_energy, down_energy] = energies;
+            result[i] = {(right_energy - left_energy) / neighbor_tris.size(), (up_energy - down_energy) / neighbor_tris.size()};
+        }
+        return result;
+    }
+
+    auto computeGradients(const Triangulation& triangulation, const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex, const std::vector<TriangulationOptimizer::ErrorData>& error_data, float pixel_width, float pixel_height)
+    {
+        std::vector<Vec2> result(triangulation.size());
+        for(VertexIndice i = 0; i < result.size(); ++i)
+        {
+            Vec2& gradient = result[i];
+            auto& neighbor_tris = triangles_per_vertex[i];
+            for(auto [tri_id, pos] : neighbor_tris)
+            {
+                float errors[4];
+                for(int i = 0; i < 4; ++i)
+                {
+                    auto data = error_data[tri_id * 13 + 1 + pos * 4 + i];
+                    errors[i] = data.error_total / 255.f / data.count / 2;
+                }
+                auto& [right_error, up_error, left_error, down_error] = errors;
+                gradient.x += (right_error - left_error) / (2*pixel_width) / 3;
+                gradient.y += (up_error - down_error) / (2*pixel_height) / 3;
+            }
+        }
+        return result;
+    }
+}
+
+
 TriangulationOptimizer::TriangulationOptimizer()
     :_gl{QOpenGLContext::currentContext()->extraFunctions()}
 {
@@ -31,41 +115,8 @@ TriangulationOptimizer::~TriangulationOptimizer()
 {
 }
 
-namespace
+std::vector<TriangulationOptimizer::ErrorData> TriangulationOptimizer::computeErrors(const Triangulation& triangulation, int w, int h)
 {
-    struct TriangleData
-    {
-        GLuint color_total_r = 0;
-        GLuint color_total_g = 0;
-        GLuint color_total_b = 0;
-        GLuint count = 0;
-    };
-
-    struct ErrorData
-    {
-        GLuint error_total = 0;
-        GLuint count = 100;
-    };
-}
-
-
-
-void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned texture_handle)
-{
-    //Appliquer equation 10 sur chaque vertice v
-        //h est un parametre
-        //Il faut d'abord calculer les gradients en v (7)
-            //Calculés à partir des gradients des triangles adjacents
-                //Calculer les énergies pour chacune des 12+1 variantes de chaque triangle (11)
-                    //2 passes : Génération des couleurs moyennes, puis calcul de l'erreur (4)  -->  Formule de variance, faisable en une seule passe?
-    int w, h;
-    _gl->glActiveTexture(GL_TEXTURE0);
-    _gl->glBindTexture(GL_TEXTURE_2D, texture_handle);
-    _gl->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
-    _gl->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
-    float pixel_width = 1.f / w;
-    float pixel_height = 1.f / h;
-
     GLuint vao;
     _gl->glGenVertexArrays(1,&vao);
     _gl->glBindVertexArray(vao);
@@ -130,39 +181,45 @@ void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned tex
     _gl->glDeleteRenderbuffers(1, &rbo);
     _gl->glDeleteVertexArrays(1, &vao);
 
+    return error_data;
+}
 
-    std::vector<std::vector<std::pair<unsigned,unsigned char>>> triangles_per_vertex(triangulation.size());
-    for(unsigned i = 0; i < triangulation.triangles().size(); ++i)
-    {
-        Triangle triangle = triangulation.triangles()[i];
-        triangles_per_vertex[triangle.a].emplace_back(i,0);
-        triangles_per_vertex[triangle.b].emplace_back(i,1);
-        triangles_per_vertex[triangle.c].emplace_back(i,2);
-    }
+
+void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned texture_handle)
+{
+    //Appliquer equation 10 sur chaque vertice v
+        //h est un parametre
+        //Il faut d'abord calculer les gradients en v (7)
+            //Calculés à partir des gradients des triangles adjacents
+                //Calculer les énergies pour chacune des 12+1 variantes de chaque triangle (11)
+                    //2 passes : Génération des couleurs moyennes, puis calcul de l'erreur (4)  -->  Formule de variance, faisable en une seule passe?
+    int w, h;
+    _gl->glActiveTexture(GL_TEXTURE0);
+    _gl->glBindTexture(GL_TEXTURE_2D, texture_handle);
+    _gl->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+    _gl->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+    float pixel_width = 1.f / w;
+    float pixel_height = 1.f / h;
+
+    auto error_data = computeErrors(triangulation, w, h);
+
+    auto triangles_per_vertex = computeTrianglesPerVertex(triangulation);
+
+    std::vector<Vec2> regularisation_gradients = computeRegularisationGradients(triangulation, triangles_per_vertex, pixel_width, pixel_height);
+    std::vector<Vec2> gradients = computeGradients(triangulation, triangles_per_vertex, error_data, pixel_width, pixel_height);
 
     std::vector<Vec2> new_vertices(triangulation.size());
     for(VertexIndice i = 0; i < new_vertices.size(); ++i)
     {
-        Vec2 gradient{};
-        auto& neighbor_tris = triangles_per_vertex[i];
-        for(auto [tri_id, pos] : neighbor_tris)
-        {
-            float errors[4];
-            for(int i = 0; i < 4; ++i)
-            {
-                auto data = error_data[tri_id * 13 + 1 + pos * 4 + i];
-                errors[i] = data.error_total / 255.f / data.count / 2;
-            }
-            auto& [right_error, up_error, left_error, down_error] = errors;
-            gradient.x += (right_error - left_error) / (2*pixel_width) / 3;
-            gradient.y += (up_error - down_error) / (2*pixel_height) / 3;
-        }
-        //TODO : add normalization term
+        Vec2 gradient{ gradients[i].x * _step + regularisation_gradients[i].x * _regularisation,
+            gradients[i].y * _step + regularisation_gradients[i].y * _regularisation };
+        gradient.x = std::clamp(gradient.x, -pixel_width * _step_clamp_pixel, pixel_width * _step_clamp_pixel);
+        gradient.y = std::clamp(gradient.y, -pixel_height * _step_clamp_pixel, pixel_height * _step_clamp_pixel);
         new_vertices[i] = triangulation[i];
         if(new_vertices[i].x != 0 && new_vertices[i].x != 1 && new_vertices[i].y != 0 && new_vertices[i].y != 1)
         {
-            new_vertices[i].x -= gradient.x * _step;
-            new_vertices[i].y -= gradient.y * _step;
+            new_vertices[i].x -= gradient.x;
+            new_vertices[i].y -= gradient.y;
         }
     }
     std::copy(begin(new_vertices), end(new_vertices), begin(triangulation));
