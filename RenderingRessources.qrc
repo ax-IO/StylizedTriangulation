@@ -2,7 +2,7 @@
     <qresource prefix="/">
         <file>shaders/vertex_shader.glsl</file>
         <file>shaders/fragment_shader.glsl</file>
-        <file>capy.png</file>
+        <file>Images/capy.png</file>
         <file>shaders/fragment_shader_final.glsl</file>
         <file>Shaders/TriangulationOptimizer/geometry.glsl</file>
         <file>Shaders/TriangulationOptimizer/fragment1.glsl</file>

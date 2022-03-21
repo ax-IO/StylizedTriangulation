@@ -28,23 +28,25 @@ void GLWidget::initializeGL() {
                        GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+  Triangulation tri{100};
+
+  TriangulationOptimizer tri_opt;
+  tri_opt.optimize(tri, tex);
+    for (int i =0;i< tri.size() ; i++) {
+        qDebug()<<"vertex "<< i<<" = ("<<tri.vertices()[i].x<<","<<tri.vertices()[i].y<<")"<<Qt::endl;
+    }
+  m_tri = tri;
 }
 
 void GLWidget::paintGL() {
   //  qDebug() << "paintGL()" << Qt::endl;
   gl_fct->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  Triangulation tri{12};
-
-  TriangulationOptimizer tri_opt;
-//  tri_opt.optimize(tri, tex);
-//    for (int i =0;i< tri.size() ; i++) {
-//        qDebug()<<"vertex "<< i<<" = ("<<tri.vertices()[i].x<<","<<tri.vertices()[i].y<<")"<<Qt::endl;
-//    }
-  m_tri = tri;
 
   Renderer renderer;
-  renderer.render(tri, tex);
+  renderer.render(m_tri, tex);
 }
 
 void GLWidget::resizeGL(int w, int h) {
