@@ -35,3 +35,6 @@ DISTFILES += \
 
 RESOURCES += \
     RenderingRessources.qrc
+
+
+LIBS += -L//home/spon/lib/gsl-2.7.1 -lgsl -lgslcblas -lm
