@@ -6,6 +6,12 @@ struct Triangle_frag
     int size;
 };
 
+//struct Debug_info
+//{
+//    vec2 frag_coord;
+//    vec2 uv;
+//};
+
 struct Linear_coeff
 {
     //A est une matrice symétrique -> besoin de stocker 6 coefficients seulement
@@ -51,8 +57,6 @@ void main(void)
         //Surement pas les bonnes coordonées
         int x = int(gl_FragCoord.x);
         int y = int(gl_FragCoord.y);
-
-
 
         //A matrix
         atomicAdd(coeff[gl_PrimitiveID].A_upper[0], x*x);

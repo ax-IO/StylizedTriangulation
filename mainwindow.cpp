@@ -22,8 +22,8 @@ bool MainWindow::event(QEvent *event)
     context.create();
     context.makeCurrent(this);
 
-    QImage img(QString(":/toast.png"));
-//    QImage img(QString(":/capy.png"));
+//    QImage img(QString(":/toast.png"));
+    QImage img(QString(":/capy.png"));
 
     img.convertTo(QImage::Format_RGBA8888);
 
@@ -35,7 +35,7 @@ bool MainWindow::event(QEvent *event)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    Triangulation tri{12};
+    Triangulation tri{6};
     Renderer renderer;
     renderer.render(tri, tex, 0);
 

@@ -34,11 +34,12 @@ in vec2 uv;
 
 void main(void)
 {
-    int sz = triangle[gl_PrimitiveID].size;
 
 //    color =vec4(float(gl_PrimitiveID/8), 0, 0, 1); //goal
     if(color_constant)
     {
+        int sz = triangle[gl_PrimitiveID].size;
+
         color = vec4(
                     triangle[gl_PrimitiveID].r/float(sz*255.),
                     triangle[gl_PrimitiveID].g/float(sz*255.),
@@ -48,9 +49,12 @@ void main(void)
     }
     else
     {
-        float r = abc[gl_PrimitiveID].R[0] * uv.x + abc[gl_PrimitiveID].R[1] * uv.y + abc[gl_PrimitiveID].R[2];
-        float g = abc[gl_PrimitiveID].G[0] * uv.x + abc[gl_PrimitiveID].G[1] * uv.y + abc[gl_PrimitiveID].G[2];
-        float b = abc[gl_PrimitiveID].B[0] * uv.x + abc[gl_PrimitiveID].B[1] * uv.y + abc[gl_PrimitiveID].B[2];
+        float x = gl_FragCoord.x;
+        float y = gl_FragCoord.y;
+
+        float r = abc[gl_PrimitiveID].R[0] * x + abc[gl_PrimitiveID].R[1] * y + abc[gl_PrimitiveID].R[2];
+        float g = abc[gl_PrimitiveID].G[0] * x + abc[gl_PrimitiveID].G[1] * y + abc[gl_PrimitiveID].G[2];
+        float b = abc[gl_PrimitiveID].B[0] * x + abc[gl_PrimitiveID].B[1] * y + abc[gl_PrimitiveID].B[2];
 
         color = vec4(r/float(255.), g/float(255.), b/float(255.), 1);
     }
