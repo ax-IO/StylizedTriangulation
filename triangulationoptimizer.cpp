@@ -2,6 +2,9 @@
 #include <QOpenGLShader>
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
+#include <cmath>
+#include <numbers>
+#include <algorithm>
 
 struct TriangulationOptimizer::ErrorData
 {
@@ -11,9 +14,22 @@ struct TriangulationOptimizer::ErrorData
 
 namespace
 {
+    float sqrLen(Vec2 x)
+    {
+        return x.x * x.x + x.y * x.y;
+    }
+
     float sqrDist(Vec2 a, Vec2 b)
     {
-        return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+        return sqrLen({b.x-a.x, b.y-a.y});
+    }
+
+    float angle(Vec2 l, Vec2 a, Vec2 r)
+    {
+        using std::sqrt, std::acos;
+        Vec2 al{l.x - a.x, l.y - a.y};
+        Vec2 ar{r.x - a.x, r.y - a.y};
+        return acos((al.x * ar.x + al.y * ar.y) / sqrt(sqrLen(al)) / sqrt(sqrLen(ar)));
     }
 
     struct TriangleData
@@ -24,15 +40,28 @@ namespace
         GLuint count = 0;
     };
 
+    void addTrianglePerVertex(unsigned t, const Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
+    {
+        Triangle triangle = triangulation.triangles()[t];
+        triangles_per_vertex[triangle.a].emplace_back(t,0);
+        triangles_per_vertex[triangle.b].emplace_back(t,1);
+        triangles_per_vertex[triangle.c].emplace_back(t,2);
+    }
+
+    void removeTrianglePerVertex(unsigned t, const Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
+    {
+        auto f = [t](auto& item) { return item.first == t; };
+        Triangle triangle = triangulation.triangles()[t];
+        VertexIndice vertices[]{triangle.a, triangle.b, triangle.c};
+        for(VertexIndice v : vertices) triangles_per_vertex[v].erase(std::remove_if(begin(triangles_per_vertex[v]), end(triangles_per_vertex[v]), f), end(triangles_per_vertex[v]));
+    }
+
     auto computeTrianglesPerVertex(const Triangulation& triangulation)
     {
         std::vector<std::vector<std::pair<unsigned,unsigned char>>> result(triangulation.size());
         for(unsigned i = 0; i < triangulation.triangles().size(); ++i)
         {
-            Triangle triangle = triangulation.triangles()[i];
-            result[triangle.a].emplace_back(i,0);
-            result[triangle.b].emplace_back(i,1);
-            result[triangle.c].emplace_back(i,2);
+            addTrianglePerVertex(i, triangulation, result);
         }
         return result;
     }
@@ -75,7 +104,7 @@ namespace
                 for(int i = 0; i < 4; ++i)
                 {
                     auto data = error_data[tri_id * 13 + 1 + pos * 4 + i];
-                    errors[i] = data.error_total / 255.f / data.count / 2;
+                    errors[i] = data.count ? data.error_total / 255.f / data.count / 2 : 0.f;
                 }
                 auto& [right_error, up_error, left_error, down_error] = errors;
                 gradient.x += (right_error - left_error) / (2*pixel_width) / 3;
@@ -83,6 +112,43 @@ namespace
             }
         }
         return result;
+    }
+
+    void checkForFlip(unsigned t, Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
+    {
+        Triangle tri = triangulation.triangles()[t];
+        VertexIndice indices[]{tri.a, tri.b, tri.c};
+        for(int i = 0; i < 3; ++i)
+        {
+            VertexIndice v1 = indices[i];
+            VertexIndice v2 = indices[(i+1)%3];
+            VertexIndice v3 = indices[(i+2)%3];
+            float local_angle = angle(triangulation[v1], triangulation[v3], triangulation[v2]);
+            for(auto [other_t,l] : triangles_per_vertex[v1])
+            {
+                Triangle other_tri = triangulation.triangles()[other_t];
+                VertexIndice other_indices[]{other_tri.a, other_tri.b, other_tri.c};
+                bool has_edge = false;
+                VertexIndice opposite=v3;
+                for(VertexIndice v : other_indices)
+                {
+                    if(v != v1 && v != v2 && v != v3) opposite = v;
+                    if(v == v2) has_edge = true;
+                }
+                if(has_edge && local_angle + angle(triangulation[v1], triangulation[opposite], triangulation[v2]) >= M_PI)
+                {
+                    removeTrianglePerVertex(t, triangulation, triangles_per_vertex);
+                    removeTrianglePerVertex(other_t, triangulation, triangles_per_vertex);
+                    triangulation.flipCommonEdge(t, other_t);
+                    addTrianglePerVertex(t, triangulation, triangles_per_vertex);
+                    addTrianglePerVertex(other_t, triangulation, triangles_per_vertex);
+
+                    checkForFlip(t, triangulation, triangles_per_vertex);
+                    checkForFlip(other_t, triangulation, triangles_per_vertex);
+                    return;
+                }
+            }
+        }
     }
 }
 
@@ -223,4 +289,22 @@ void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned tex
         }
     }
     std::copy(begin(new_vertices), end(new_vertices), begin(triangulation));
+    std::size_t tri_count = triangulation.triangles().size();
+    unsigned long long total_count = 0;
+    for(std::size_t t = 0; t < tri_count; ++t)
+    {
+        total_count += error_data[t*13].count;
+    }
+    for(std::size_t t = 0; t < tri_count; ++t)
+    {
+        if((float)error_data[t*13].error_total / total_count >= _energy_split_treshold) triangulation.splitTriangle(t);
+    }
+
+    //There can be new vertices and triangles, so recompute the map
+    triangles_per_vertex = computeTrianglesPerVertex(triangulation);
+
+    for(unsigned t = 0; t < triangulation.triangles().size(); ++t)
+    {
+        checkForFlip(t, triangulation, triangles_per_vertex);
+    }
 }
