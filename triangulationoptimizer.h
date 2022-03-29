@@ -21,10 +21,10 @@ public:
     QOpenGLShaderProgram _programs[2];
     QOpenGLExtraFunctions* _gl;
     GLuint _image_locations[2];
-    float _step = 0.2f;
+    float _step = 1.f;
     float _step_clamp_pixel = 0.2f;
     float _regularisation = 0.001f;
-    float _energy_split_treshold = 0.05f;
+    float _energy_split_treshold = 0.5f;
 };
 
 #endif // TRIANGULATIONOPTIMIZER_H

@@ -14,6 +14,17 @@ struct TriangulationOptimizer::ErrorData
 
 namespace
 {
+    template<typename T>
+    bool sens(const Triangle& t, const T& tri)
+    {
+        Vec2 a = tri[t.a];
+        Vec2 l = tri[t.b];
+        Vec2 r = tri[t.c];
+        Vec2 al{l.x - a.x, l.y - a.y};
+        Vec2 ar{r.x - a.x, r.y - a.y};
+        return al.x * ar.y - ar.x * al.y > 0;
+    }
+
     float sqrLen(Vec2 x)
     {
         return x.x * x.x + x.y * x.y;
@@ -126,6 +137,7 @@ namespace
             float local_angle = angle(triangulation[v1], triangulation[v3], triangulation[v2]);
             for(auto [other_t,l] : triangles_per_vertex[v1])
             {
+                if(other_t==t) continue;
                 Triangle other_tri = triangulation.triangles()[other_t];
                 VertexIndice other_indices[]{other_tri.a, other_tri.b, other_tri.c};
                 bool has_edge = false;
@@ -142,9 +154,6 @@ namespace
                     triangulation.flipCommonEdge(t, other_t);
                     addTrianglePerVertex(t, triangulation, triangles_per_vertex);
                     addTrianglePerVertex(other_t, triangulation, triangles_per_vertex);
-
-                    checkForFlip(t, triangulation, triangles_per_vertex);
-                    checkForFlip(other_t, triangulation, triangles_per_vertex);
                     return;
                 }
             }
@@ -250,6 +259,16 @@ std::vector<TriangulationOptimizer::ErrorData> TriangulationOptimizer::computeEr
     return error_data;
 }
 
+bool tri_eq(const Triangle& l, const Triangle& r)
+{
+    VertexIndice la[]{l.a,l.b,l.c};
+    VertexIndice ra[]{r.a,r.b,r.c};
+    for(auto s : la)
+    {
+        if(std::find(std::begin(ra), std::end(ra), s) == std::end(ra)) return false;
+    }
+    return true;
+}
 
 void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned texture_handle)
 {
@@ -274,18 +293,27 @@ void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned tex
     std::vector<Vec2> regularisation_gradients = computeRegularisationGradients(triangulation, triangles_per_vertex, pixel_width, pixel_height);
     std::vector<Vec2> gradients = computeGradients(triangulation, triangles_per_vertex, error_data, pixel_width, pixel_height);
 
-    std::vector<Vec2> new_vertices(triangulation.size());
+    std::vector<Vec2> new_vertices = triangulation.vertices();
     for(VertexIndice i = 0; i < new_vertices.size(); ++i)
     {
         Vec2 gradient{ gradients[i].x * _step + regularisation_gradients[i].x * _regularisation,
             gradients[i].y * _step + regularisation_gradients[i].y * _regularisation };
         gradient.x = std::clamp(gradient.x, -pixel_width * _step_clamp_pixel, pixel_width * _step_clamp_pixel);
         gradient.y = std::clamp(gradient.y, -pixel_height * _step_clamp_pixel, pixel_height * _step_clamp_pixel);
-        new_vertices[i] = triangulation[i];
         if(new_vertices[i].x != 0 && new_vertices[i].x != 1 && new_vertices[i].y != 0 && new_vertices[i].y != 1)
         {
             new_vertices[i].x -= gradient.x;
             new_vertices[i].y -= gradient.y;
+        }
+
+        for(auto [t,unused] : triangles_per_vertex[i])
+        {
+            Triangle tri = triangulation.triangles()[t];
+            if(sens(tri, triangulation) != sens(tri, new_vertices))
+            {
+                new_vertices[i] = triangulation[i];
+                break;
+            }
         }
     }
     std::copy(begin(new_vertices), end(new_vertices), begin(triangulation));
@@ -295,6 +323,7 @@ void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned tex
     {
         total_count += error_data[t*13].count;
     }
+
     for(std::size_t t = 0; t < tri_count; ++t)
     {
         if((float)error_data[t*13].error_total / total_count >= _energy_split_treshold) triangulation.splitTriangle(t);
