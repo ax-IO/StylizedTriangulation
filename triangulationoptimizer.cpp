@@ -3,7 +3,6 @@
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
 #include <cmath>
-#include <numbers>
 #include <algorithm>
 
 struct TriangulationOptimizer::ErrorData
