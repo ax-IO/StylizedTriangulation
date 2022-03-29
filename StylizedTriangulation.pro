@@ -31,3 +31,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     TriangulationOptimizerResources.qrc
+    RenderingRessources.qrc
+
+
+LIBS += -L//home/spon/lib/gsl-2.7.1 -lgsl -lgslcblas -lm

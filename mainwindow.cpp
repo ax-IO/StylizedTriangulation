@@ -22,8 +22,8 @@ bool MainWindow::event(QEvent *event)
     context.create();
     context.makeCurrent(this);
 
-    QImage img(QString(":/toast.png"));
-//    QImage img(QString(":/capy.png"));
+//    QImage img(QString(":/toast.png"));
+    QImage img(QString(":/capy.png"));
 
     img.convertTo(QImage::Format_RGBA8888);
 
@@ -35,17 +35,17 @@ bool MainWindow::event(QEvent *event)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    Triangulation tri{0};
+    Triangulation tri{6};
     Renderer renderer;
-    renderer.render(tri, tex);
+    renderer.render(tri, tex, 0);
 
-    for(Vec2 coord : tri.vertices()){
-        std::cout<<"("<<coord.x<<", "<<coord.y<<")"<<std::endl;
-    }
+//    for(Vec2 coord : tri.vertices()){
+//        std::cout<<"("<<coord.x<<", "<<coord.y<<")"<<std::endl;
+//    }
 
-    for(Triangle tr : tri.triangles()){
-        std::cout<<"a,b,c: "<<tr.a<<", "<<tr.b<<", "<<tr.c<<std::endl;
-    }
+//    for(Triangle tr : tri.triangles()){
+//        std::cout<<"a,b,c: "<<tr.a<<", "<<tr.b<<", "<<tr.c<<std::endl;
+//    }
     std::cout << "Coucou" << std::endl;
     context.swapBuffers(this);
     return true;
