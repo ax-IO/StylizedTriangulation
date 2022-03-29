@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Shaders/TriangulationOptimizer/geometry.glsl</file>
+        <file>Shaders/TriangulationOptimizer/fragment1.glsl</file>
+        <file>Shaders/TriangulationOptimizer/fragment2.glsl</file>
+        <file>Shaders/TriangulationOptimizer/vertex.glsl</file>
+    </qresource>
+</RCC>
