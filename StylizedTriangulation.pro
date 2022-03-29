@@ -29,9 +29,5 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES += \
-    fragment_shader.glsl \
-    vertex_shader.glsl
-
 RESOURCES += \
-    RenderingRessources.qrc
+    TriangulationOptimizerResources.qrc
