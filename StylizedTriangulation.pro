@@ -24,7 +24,6 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
-# Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
@@ -36,7 +35,11 @@ DISTFILES += \
 RESOURCES += \
     RenderingRessources.qrc
 
-
-LIBS += -L//home/spon/lib/gsl-2.7.1 -lgsl -lgslcblas -lm
 RESOURCES += \
     TriangulationOptimizerResources.qrc
+
+
+#LIBS += -L//home/spon/lib/gsl-2.7.1 -lgsl -lgslcblas -lm
+LIBS += -L $$PWD/gsl/lib/ -lgsl -lgslcblas -lm
+INCLUDEPATH += $$PWD/gsl/include/
+
