@@ -40,6 +40,13 @@ RESOURCES += \
 
 
 #LIBS += -L//home/spon/lib/gsl-2.7.1 -lgsl -lgslcblas -lm
-LIBS += -L $$PWD/gsl/lib/ -lgsl -lgslcblas -lm
-INCLUDEPATH += $$PWD/gsl/include/
+#LIBS += -L $$PWD/gsl/lib/ -lgsl -lgslcblas -lm
+#INCLUDEPATH += $$PWD/gsl/include/
 
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/gsl/lib/release/ -lgsl -lgslcblas
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/gsl/lib/debug/ -lgsl -lgslcblas
+else:unix: LIBS += -L$$PWD/gsl/lib/ -lgsl -lgslcblas
+
+INCLUDEPATH += $$PWD/gsl/include
+DEPENDPATH += $$PWD/gsl/include
