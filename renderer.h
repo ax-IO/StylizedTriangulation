@@ -10,8 +10,8 @@
 #include <QOpenGLExtraFunctions>
 
 #include "gsl_linalg.h" //librairie à installer (pour calcul de la couleur linéaire)
-#include "gsl_matrix.h"
-#include "gsl_errno.h"
+//#include "gsl_matrix.h"
+//#include "gsl_errno.h"
 
 //#include <gsl/gsl_matrix.h> //librairie à installer (pour calcul de la couleur linéaire)
 //#include <gsl/gsl_linalg.h>
