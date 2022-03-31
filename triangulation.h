@@ -25,6 +25,8 @@ public:
     const std::vector<Vec2>& vertices() const;
     const std::vector<Triangle>& triangles() const;
     VertexIndice size() const;
+    void splitTriangle(unsigned triangle);
+    void flipCommonEdge(unsigned l_triangle, unsigned r_triangle);
 
     friend auto begin(Triangulation& t) { return t._vertices.begin(); }
     friend auto begin(const Triangulation& t) { return t._vertices.begin(); }

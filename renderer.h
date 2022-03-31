@@ -9,9 +9,13 @@
 #include <QOpenGLFunctions_2_0>
 #include <QOpenGLExtraFunctions>
 
-#include <gsl/gsl_linalg.h> //librairie à installer (pour calcul de la couleur linéaire)
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_errno.h>
+#include "gsl_linalg.h" //librairie à installer (pour calcul de la couleur linéaire)
+#include "gsl_matrix.h"
+#include "gsl_errno.h"
+
+//#include <gsl/gsl_matrix.h> //librairie à installer (pour calcul de la couleur linéaire)
+//#include <gsl/gsl_linalg.h>
+//#include <gsl/gsl_errno.h>
 
 #define COLOR_LINEAR 0
 #define COLOR_CONSTANT 1

@@ -56,3 +56,50 @@ VertexIndice Triangulation::size() const
 {
     return _vertices.size();
 }
+
+void Triangulation::splitTriangle(unsigned triangle)
+{
+    unsigned next_tris = _triangles.size();
+    _triangles.resize(next_tris + 2);
+    Triangle& orig = _triangles[triangle];
+    Triangle& first = _triangles[next_tris];
+    Triangle& second = _triangles[next_tris+1];
+    unsigned new_vert = _vertices.size();
+    _vertices.push_back({(_vertices[orig.a].x + _vertices[orig.b].x + _vertices[orig.c].x) / 3,
+                (_vertices[orig.a].y + _vertices[orig.b].y + _vertices[orig.c].y) / 3});
+
+    first.a = orig.b;
+    first.b = orig.c;
+    first.c = new_vert;
+
+    second.a = orig.c;
+    second.b = orig.a;
+    second.c = new_vert;
+
+    orig.c = new_vert;
+}
+
+void Triangulation::flipCommonEdge(unsigned l_triangle, unsigned r_triangle)
+{
+    if(l_triangle == r_triangle) return;
+
+    VertexIndice* const lptrs[]{&_triangles[l_triangle].a, &_triangles[l_triangle].b, &_triangles[l_triangle].c};
+    VertexIndice* const rptrs[]{&_triangles[r_triangle].a, &_triangles[r_triangle].b, &_triangles[r_triangle].c};
+    int l_edge_start;
+    int r_edge_start;
+    int common_count=0;
+    for(int i = 0; i < 3; ++i)
+    {
+        for(int j = 0; j < 3; ++j)
+        {
+            if(*lptrs[i] != *rptrs[j]) continue;
+            if(!common_count || l_edge_start == (i+1)%3) l_edge_start = i;
+            if(!common_count || r_edge_start == (j+1)%3) r_edge_start = j;
+            ++common_count;
+        }
+    }
+    if(common_count != 2) return;
+
+    *lptrs[l_edge_start] = *rptrs[(r_edge_start+2)%3];
+    *rptrs[r_edge_start] = *lptrs[(l_edge_start+2)%3];
+}

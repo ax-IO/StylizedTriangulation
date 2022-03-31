@@ -24,14 +24,29 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
-# Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
+DISTFILES += \
+    fragment_shader.glsl \
+    vertex_shader.glsl
+
 RESOURCES += \
-    TriangulationOptimizerResources.qrc
     RenderingRessources.qrc
 
+RESOURCES += \
+    TriangulationOptimizerResources.qrc
 
-LIBS += -L//home/spon/lib/gsl-2.7.1 -lgsl -lgslcblas -lm
+
+#LIBS += -L//home/spon/lib/gsl-2.7.1 -lgsl -lgslcblas -lm
+#LIBS += -L $$PWD/gsl/lib/ -lgsl -lgslcblas -lm
+#INCLUDEPATH += $$PWD/gsl/include/
+
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/gsl/lib/release/ -lgsl -lgslcblas
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/gsl/lib/debug/ -lgsl -lgslcblas
+else:unix: LIBS += -L$$PWD/gsl/lib/ -lgsl -lgslcblas
+
+INCLUDEPATH += $$PWD/gsl/include
+DEPENDPATH += $$PWD/gsl/include
