@@ -38,15 +38,6 @@ RESOURCES += \
 RESOURCES += \
     TriangulationOptimizerResources.qrc
 
+#installer gsl
+LIBS += -L /usr/include/gsl -lgsl -lgslcblas
 
-#LIBS += -L//home/spon/lib/gsl-2.7.1 -lgsl -lgslcblas -lm
-#LIBS += -L $$PWD/gsl/lib/ -lgsl -lgslcblas -lm
-#INCLUDEPATH += $$PWD/gsl/include/
-
-
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/include/lib/release/ -lgsl -lgslcblas
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/include/lib/debug/ -lgsl -lgslcblas
-else:unix: LIBS += -L$$PWD/include/lib -lgsl -lgslcblas
-
-INCLUDEPATH += $$PWD/include/gsl
-DEPENDPATH += $$PWD/include/gsl
