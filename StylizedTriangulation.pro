@@ -44,9 +44,9 @@ RESOURCES += \
 #INCLUDEPATH += $$PWD/gsl/include/
 
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/gsl/lib/release/ -lgsl -lgslcblas -lm
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/gsl/lib/debug/ -lgsl -lgslcblas
-else:unix: LIBS += -L$$PWD/gsl/lib/ -lgsl -lgslcblas
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/include/lib/release/ -lgsl -lgslcblas
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/include/lib/debug/ -lgsl -lgslcblas
+else:unix: LIBS += -L$$PWD/include/lib -lgsl -lgslcblas
 
-INCLUDEPATH += $$PWD/gsl/include
-DEPENDPATH += $$PWD/gsl/include
+INCLUDEPATH += $$PWD/include/gsl
+DEPENDPATH += $$PWD/include/gsl
