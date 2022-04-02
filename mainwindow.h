@@ -30,10 +30,20 @@ private:
   void scaleImage(double factor);
   void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
+  int filebar_height = 34;
+  int statusbar_height = 27;
+
   QImage image;
+  QImage image_to_save;
+  QImage image_to_display;
+
   QScrollArea *scrollArea;
   double scaleFactor = 1;
 
+  QLabel *imageLabel;
+  GLWidget *openGL;
+
+  QAction *openAct;
   QAction *saveAsAct;
   QAction *printAct;
   QAction *copyAct;

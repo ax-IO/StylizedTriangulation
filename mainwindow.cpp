@@ -23,7 +23,11 @@
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent) {
+    : QMainWindow(parent), scrollArea(new QScrollArea), imageLabel(new QLabel) {
+
+    imageLabel->setBackgroundRole(QPalette::Base);
+    imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    imageLabel->setScaledContents(true);
 
   createActions();
   resize(QGuiApplication::primaryScreen()->availableSize() * (3.0f / 5.0f));
@@ -46,8 +50,7 @@ bool MainWindow::loadFile(const QString &fileName) {
   setImage(newImage);
   //  loadImageToTexture(newImage);
   updateActions();
-//  qDebug()<< << Qt::endl;
-
+  //  qDebug()<< << Qt::endl;
 
   setWindowFilePath(fileName);
 
@@ -57,33 +60,55 @@ bool MainWindow::loadFile(const QString &fileName) {
                               .arg(image.height())
                               .arg(image.depth());
   statusBar()->showMessage(message);
-  int filebar_height=34;
-  int statusbar_height=27;
 
-  resize(image.width(), image.height()+filebar_height+statusbar_height);
 
-  GLWidget *openGL = new GLWidget(fileName, this);
+  resize(image.width(), image.height() + filebar_height + statusbar_height);
+//------------------------------------------------------------------------------------------
+  openGL = new GLWidget(fileName, this);
+
+//  image_to_display = openGL->grabFramebuffer();
+//  if (image_to_display.colorSpace().isValid())
+//    image_to_display.convertToColorSpace(QColorSpace::SRgb);
+//  imageLabel->setPixmap(QPixmap::fromImage(image_to_display));
+
+
+//  imageLabel->setBackgroundRole(QPalette::Base);
+//  imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+//  imageLabel->setScaledContents(true);
+
+//  imageLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+//  imageLabel->setText("first line\nsecond line");
+//  imageLabel->setAlignment(Qt::AlignBottom | Qt::AlignRight);
+
+
+//  scrollArea->setBackgroundRole(QPalette::Dark);
+//  scrollArea->setWidget(imageLabel);
+//  scrollArea->setVisible(true);
+
   setCentralWidget(openGL);
 
+//------------------------------------------------------------------------------------------
   return true;
 }
 
 void MainWindow::createActions() {
   QMenu *fileMenu = menuBar()->addMenu(tr("&Fichier"));
 
-
-  QAction *openAct =
+  openAct =
       fileMenu->addAction(tr("&Ouvrir Image..."), this, &MainWindow::open);
   openAct->setShortcut(QKeySequence::Open);
 
   saveAsAct = fileMenu->addAction(tr("Enregistrer &sous..."), this,
                                   &MainWindow::saveAs);
+  saveAsAct->setShortcut(QKeySequence::Save);
   saveAsAct->setEnabled(false);
 
   fileMenu->addSeparator();
 
   QAction *exitAct = fileMenu->addAction(tr("&Quitter"), this, &QWidget::close);
   exitAct->setShortcut(tr("Ctrl+Q"));
+
+  //------------------------------------------------------------------------------------------
 
   QMenu *viewMenu = menuBar()->addMenu(tr("A&ffichage"));
 
@@ -99,7 +124,7 @@ void MainWindow::createActions() {
 
   normalSizeAct =
       viewMenu->addAction(tr("&Taille réelle"), this, &MainWindow::normalSize);
-  normalSizeAct->setShortcut(tr("Ctrl+S"));
+  normalSizeAct->setShortcut(tr("Ctrl+="));
   normalSizeAct->setEnabled(false);
 
   viewMenu->addSeparator();
@@ -110,6 +135,12 @@ void MainWindow::createActions() {
   fitToWindowAct->setCheckable(true);
   fitToWindowAct->setShortcut(tr("Ctrl+F"));
 
+
+  //------------------------------------------------------------------------------------------
+  QMenu *renderMenu = menuBar()->addMenu(tr("&Modes de rendu"));
+
+  renderMenu->addAction(tr("Original"), this, &MainWindow::about);
+  //------------------------------------------------------------------------------------------
   QMenu *helpMenu = menuBar()->addMenu(tr("&Aide"));
 
   helpMenu->addAction(tr("À propos de &StylizedTriangulation"), this,
@@ -124,7 +155,22 @@ void MainWindow::updateActions() {
   normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
 }
 
-bool MainWindow::saveFile(const QString &fileName) {}
+bool MainWindow::saveFile(const QString &fileName) {
+
+  QImageWriter writer(fileName);
+
+  if (!writer.write(image_to_save)) {
+    QMessageBox::information(
+        this, QGuiApplication::applicationDisplayName(),
+        tr("Cannot write %1: %2").arg(QDir::toNativeSeparators(fileName)),
+        writer.errorString());
+    return false;
+  }
+  const QString message =
+      tr("Wrote \"%1\"").arg(QDir::toNativeSeparators(fileName));
+  statusBar()->showMessage(message);
+  return true;
+}
 
 void MainWindow::setImage(const QImage &newImage) {
   image = newImage;
@@ -182,14 +228,13 @@ static void initializeImageFileDialog(QFileDialog &dialog,
     mimeTypeFilters.append(mimeTypeName);
   mimeTypeFilters.sort();
   dialog.setMimeTypeFilters(mimeTypeFilters);
-//  dialog.selectMimeTypeFilter("image/jpeg");
+  //  dialog.selectMimeTypeFilter("image/jpeg");
   dialog.selectMimeTypeFilter("image/png");
-//  dialog.selectMimeTypeFilter("application/octet-stream");
+  //  dialog.selectMimeTypeFilter("application/octet-stream");
 
   if (acceptMode == QFileDialog::AcceptSave)
     dialog.setDefaultSuffix("jpg");
-//    dialog.setDefaultSuffix("png");
-
+  //    dialog.setDefaultSuffix("png");
 }
 
 void MainWindow::open() {
@@ -201,10 +246,22 @@ void MainWindow::open() {
   }
 }
 
-void MainWindow::saveAs() {}
+void MainWindow::saveAs() {
+  image_to_save = openGL->grabFramebuffer();
 
-void MainWindow::zoomIn() {}
+  QFileDialog dialog(this, tr("Enregistrer un fichier Image"));
+  initializeImageFileDialog(dialog, QFileDialog::AcceptSave);
+  while (dialog.exec() == QDialog::Accepted &&
+         !saveFile(dialog.selectedFiles().first())) {
+  }
+}
 
+void MainWindow::zoomIn() {
+  qDebug() << "Zoom In" << Qt::endl;
+  openGL->resize(800, 800);
+  resize(800, 800 + filebar_height + statusbar_height);
+
+}
 void MainWindow::zoomOut() {}
 
 void MainWindow::normalSize() {}

@@ -30,7 +30,7 @@ void GLWidget::initializeGL() {
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
-  Triangulation tri{100};
+  Triangulation tri{20};
 
   TriangulationOptimizer tri_opt;
   tri_opt.optimize(tri, tex);
@@ -44,9 +44,11 @@ void GLWidget::paintGL() {
   //  qDebug() << "paintGL()" << Qt::endl;
   gl_fct->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+  // Créer un framebuffer
   Renderer renderer;
   renderer.render(m_tri, tex);
+
+  // Exporter la texture puis en QImage
 }
 
 void GLWidget::resizeGL(int w, int h) {
@@ -83,6 +85,7 @@ Vec2 GLWidget::coord_imageToTexture(QPoint point_image, int width, int height) {
 float distance_vec2(Vec2 a, Vec2 b) {
   return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
+
 // Retourne l'indice du sommet correspondant aux coordonnées de textures
 // (distance euclidienne minimale)
 int GLWidget::coord_textureToIndex(Vec2 texturePoint, Triangulation tri) {

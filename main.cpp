@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     format.setStencilBufferSize(8);
     format.setVersion(3, 2);
     format.setProfile(QSurfaceFormat::CoreProfile);
-  //  QSurfaceFormat::setDefaultFormat(format);
+//    QSurfaceFormat::setDefaultFormat(format);
 
 
     MainWindow w;
