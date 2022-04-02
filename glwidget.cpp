@@ -7,6 +7,11 @@ GLWidget::GLWidget(QString filepath, QWidget *parent)
   qDebug() << "Filepath = " << fp << Qt::endl;
 }
 
+GLWidget::~GLWidget()
+{
+    delete m_tri_opt;
+}
+
 void GLWidget::initializeGL() {
   qDebug() << "initializeGL()" << Qt::endl;
   gl_fct = QOpenGLContext::currentContext()->extraFunctions();
@@ -24,19 +29,29 @@ void GLWidget::initializeGL() {
   // texture setup
   gl_fct->glGenTextures(1, &tex);
   gl_fct->glBindTexture(GL_TEXTURE_2D, tex);
-  gl_fct->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0,
-                       GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+  gl_fct->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
-  Triangulation tri{20};
+  Triangulation tri{3};
+
+
+//  for (int i = 0; i< 8; i++)
+//  {
+//      tri_opt.optimize(tri, tex);
+//  }
+
 
   TriangulationOptimizer tri_opt;
   tri_opt.optimize(tri, tex);
-    for (int i =0;i< tri.size() ; i++) {
-        qDebug()<<"vertex "<< i<<" = ("<<tri.vertices()[i].x<<","<<tri.vertices()[i].y<<")"<<Qt::endl;
-    }
+
+//  m_tri_opt = new TriangulationOptimizer;
+//  m_tri_opt->optimize(tri, tex);
+
+//    for (int i =0;i< tri.size() ; i++) {
+//        qDebug()<<"vertex "<< i<<" = ("<<tri.vertices()[i].x<<","<<tri.vertices()[i].y<<")"<<Qt::endl;
+//    }
   m_tri = tri;
 }
 
@@ -45,6 +60,8 @@ void GLWidget::paintGL() {
   gl_fct->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Créer un framebuffer
+
+  // Rendu
   Renderer renderer;
   renderer.render(m_tri, tex, 1);
 
@@ -53,7 +70,7 @@ void GLWidget::paintGL() {
 
 void GLWidget::resizeGL(int w, int h) {
   qDebug() << "resizeGL(" << w << "," << h << ")" << Qt::endl;
-  gl_fct->glViewport(0, 0, w, h);
+//  gl_fct->glViewport(0, 0, w, h);
   //  glMatrixMode(GL_PROJECTION);
   //  glLoadIdentity();
   //  glMatrixMode(GL_MODELVIEW);

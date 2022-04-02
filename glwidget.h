@@ -28,7 +28,7 @@ class GLWidget : public QOpenGLWidget, public QOpenGLFunctions {
 public:
   GLWidget(QString filepath, QWidget *parent = nullptr);
 
-//~GLWidget();
+~GLWidget();
 protected:
   void initializeGL() override;
   void paintGL() override;
@@ -47,6 +47,7 @@ private:
   int m_width;
   int m_height;
   Triangulation m_tri;
+  TriangulationOptimizer *m_tri_opt;
 
   QOpenGLExtraFunctions* gl_fct;
 
