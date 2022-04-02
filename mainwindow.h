@@ -1,27 +1,66 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QWindow>
+#include "renderer.h"
 #include "triangulation.h"
 #include "triangulationoptimizer.h"
-#include "renderer.h"
+#include "glwidget.h"
 
 
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
+#include <QWidget>
+#include <QLabel>
+#include <QMainWindow>
+#include <QScrollArea>
 
-class MainWindow : public QWindow
-{
-    Q_OBJECT
+class MainWindow : public QMainWindow {
+  Q_OBJECT
 
 public:
-    MainWindow(QWindow *parent = nullptr);
-    ~MainWindow();
+  MainWindow(QWidget *parent = nullptr);
+  ~MainWindow();
+  bool loadFile(const QString &);
 
-    bool event(QEvent *event) override;
-    void exposeEvent(QExposeEvent *event) override;
 
 private:
+  void createActions();
+  void updateActions();
+  bool saveFile(const QString &fileName);
+  void setImage(const QImage &newImage);
+  void loadImageToTexture(const QImage &img);
+  void scaleImage(double factor);
+  void adjustScrollBar(QScrollBar *scrollBar, double factor);
+
+  int filebar_height = 34;
+  int statusbar_height = 27;
+
+  QImage image;
+  QImage image_to_save;
+  QImage image_to_display;
+
+  QScrollArea *scrollArea;
+  double scaleFactor = 1;
+
+  QLabel *imageLabel;
+  GLWidget *openGL;
+
+  QAction *openAct;
+  QAction *saveAsAct;
+  QAction *printAct;
+  QAction *copyAct;
+  QAction *zoomInAct;
+  QAction *zoomOutAct;
+  QAction *normalSizeAct;
+  QAction *fitToWindowAct;
+
+  GLuint texture;
+
+private slots:
+  void open();
+  void saveAs();
+  void zoomIn();
+  void zoomOut();
+  void normalSize();
+  void fitToWindow();
+  void about();
 };
 #endif // MAINWINDOW_H

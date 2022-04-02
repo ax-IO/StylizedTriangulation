@@ -10,6 +10,7 @@ CONFIG += c++20
 
 SOURCES += \
     main.cpp \
+    glwidget.cpp\
     mainwindow.cpp \
     renderer.cpp \
     triangulation.cpp \
@@ -17,12 +18,12 @@ SOURCES += \
 
 HEADERS += \
     mainwindow.h \
+    glwidget.h\
     renderer.h \
     triangulation.h \
     triangulationoptimizer.h
 
-FORMS += \
-    mainwindow.ui
+FORMS +=
 
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
