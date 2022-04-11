@@ -150,10 +150,13 @@ void MainWindow::createActions() {
 
   renderMenu->addSeparator();
 
-  optimizationPassAct = renderMenu->addAction(tr("Passe d'optimisation"), this, &MainWindow::optimizationPass);
+  optimizationPassAct = renderMenu->addAction(tr("Passe d'optimisation"), this, &MainWindow::callOptimizationPass);
   optimizationPassAct->setShortcut(tr("o"));
   optimizationPassAct->setEnabled(false);
 
+  optimizationSplitPassAct = renderMenu->addAction(tr("Passe d'optimisation Split"), this, &MainWindow::callOptimizationSplitPass);
+  optimizationSplitPassAct->setShortcut(tr("s"));
+  optimizationSplitsPassAct->setEnabled(false);
   //------------------------------------------------------------------------------------------
   QMenu *helpMenu = menuBar()->addMenu(tr("&Aide"));
 
@@ -170,7 +173,9 @@ void MainWindow::updateActions() {
 
   renderModeConstantAct->setEnabled(!image.isNull());
   renderModeGradientAct->setEnabled(!image.isNull());
-    optimizationPassAct->setEnabled(!image.isNull());
+  optimizationPassAct->setEnabled(!image.isNull());
+  optimizationSplitPassAct->setEnabled(!image.isNull());
+
 
 }
 
@@ -303,9 +308,17 @@ void MainWindow::about() {
          "zooming and scaling features. </p><p>In addition the example "
          "shows how to use QPainter to print an image.</p>"));
 }
-void MainWindow::optimizationPass()
+void MainWindow::callOptimizationPass()
 {
-    qDebug()<< "optimistion" <<Qt::endl;
+    qDebug()<< "callOptimizationPass() :";
+    openGL->optimizationPass();
+//    openGL->update() ;
+}
+void MainWindow::callOptimizationSplitPass()
+{
+    qDebug()<< "callOptimizationSplitPass() :";
+    openGL->optimizationSplitPass();
+//    openGL->update() ;
 }
 // Souvent : optimize(Triangulation, )
 // A chaque frame : rendererer->render(triangulation_optimisee, )

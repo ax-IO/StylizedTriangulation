@@ -5,15 +5,27 @@
 GLWidget::GLWidget(QString filepath, QWidget *parent)
     : QOpenGLWidget{parent}, fp(filepath) {
   qDebug() << "Filepath = " << fp << Qt::endl;
-}
+  }
 
 GLWidget::~GLWidget()
 {
+    delete m_renderer;
     delete m_tri_opt;
 }
 
+void GLWidget::optimizationPass()
+{
+    qDebug() << "Passe d'optimisation";
+    m_tri_opt->optimize(m_tri, tex);
+}
+void GLWidget::optimizationSplitPass()
+{
+    qDebug() << "Passe d'optimisation Split";
+    m_tri_opt->optimizeSplit(m_tri, tex);
+}
+
 void GLWidget::initializeGL() {
-  qDebug() << "initializeGL()" << Qt::endl;
+  qDebug() << "initializeGL() :";
   gl_fct = QOpenGLContext::currentContext()->extraFunctions();
   //  initializeOpenGLFunctions();
   float r, g, b;
@@ -33,7 +45,7 @@ void GLWidget::initializeGL() {
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-
+    m_renderer = new Renderer;
   Triangulation tri{3};
 
 
@@ -44,9 +56,10 @@ void GLWidget::initializeGL() {
 
 
 //  TriangulationOptimizer tri_opt;
+//  tri_opt.optimizeSplit(tri, tex);
 //  tri_opt.optimize(tri, tex);
 
-//  m_tri_opt = new TriangulationOptimizer;
+  m_tri_opt = new TriangulationOptimizer;
 //  m_tri_opt->optimize(tri, tex);
 
 //    for (int i =0;i< tri.size() ; i++) {
@@ -56,20 +69,21 @@ void GLWidget::initializeGL() {
 }
 
 void GLWidget::paintGL() {
-  //  qDebug() << "paintGL()" << Qt::endl;
+    qDebug() << "paintGL() :";
   gl_fct->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Créer un framebuffer
 
   // Rendu
-  Renderer renderer;
-  renderer.render(m_tri, tex, 1);
+//  Renderer renderer;
+//  renderer.render(m_tri, tex, 1);
+  m_renderer->render(m_tri, tex, 1);
 
   // Exporter la texture puis en QImage
 }
 
 void GLWidget::resizeGL(int w, int h) {
-  qDebug() << "resizeGL(" << w << "," << h << ")" << Qt::endl;
+  qDebug() << "resizeGL(" << w << "," << h << ") :";
 //  gl_fct->glViewport(0, 0, w, h);
   //  glMatrixMode(GL_PROJECTION);
   //  glLoadIdentity();
