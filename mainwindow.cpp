@@ -110,6 +110,7 @@ void MainWindow::createActions() {
 
   //------------------------------------------------------------------------------------------
 
+
   QMenu *viewMenu = menuBar()->addMenu(tr("A&ffichage"));
 
   zoomInAct =

@@ -15,7 +15,7 @@ struct Triangle_frag
 struct Linear_coeff
 {
     //A est une matrice symétrique -> besoin de stocker 6 coefficients seulement
-    int A_upper[6];
+    uint A_upper[6];
     uint R_b_vec[3];
     uint G_b_vec[3];
     uint B_b_vec[3];
@@ -44,7 +44,7 @@ void main(void)
     //color -> [0,1] (*255 pour convertir en unsigned)
     color = texture(img, uv);
     uvec4 col_to_add = uvec4(color*255.);
-
+    memoryBarrierBuffer();
     if(color_constant)
     {
         atomicAdd(triangle[gl_PrimitiveID].r, col_to_add.r);
@@ -79,6 +79,7 @@ void main(void)
         atomicAdd(coeff[gl_PrimitiveID].B_b_vec[1], y*col_to_add.b);
         atomicAdd(coeff[gl_PrimitiveID].B_b_vec[2], col_to_add.b);
     }
+    memoryBarrierBuffer();
 
 
 
