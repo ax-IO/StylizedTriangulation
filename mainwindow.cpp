@@ -140,7 +140,20 @@ void MainWindow::createActions() {
   //------------------------------------------------------------------------------------------
   QMenu *renderMenu = menuBar()->addMenu(tr("&Modes de rendu"));
 
-  renderMenu->addAction(tr("Original"), this, &MainWindow::about);
+  renderModeConstantAct = renderMenu->addAction(tr("Constant"), this, &MainWindow::about);
+  renderModeConstantAct->setShortcut(tr("Ctrl+&"));
+  renderModeConstantAct->setEnabled(false);
+
+  renderModeGradientAct = renderMenu->addAction(tr("Gradient"), this, &MainWindow::about);
+  renderModeGradientAct->setShortcut(tr("Ctrl+é"));
+  renderModeGradientAct->setEnabled(false);
+
+  renderMenu->addSeparator();
+
+  optimizationPassAct = renderMenu->addAction(tr("Passe d'optimisation"), this, &MainWindow::optimizationPass);
+  optimizationPassAct->setShortcut(tr("o"));
+  optimizationPassAct->setEnabled(false);
+
   //------------------------------------------------------------------------------------------
   QMenu *helpMenu = menuBar()->addMenu(tr("&Aide"));
 
@@ -154,6 +167,11 @@ void MainWindow::updateActions() {
   zoomInAct->setEnabled(!fitToWindowAct->isChecked());
   zoomOutAct->setEnabled(!fitToWindowAct->isChecked());
   normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
+
+  renderModeConstantAct->setEnabled(!image.isNull());
+  renderModeGradientAct->setEnabled(!image.isNull());
+    optimizationPassAct->setEnabled(!image.isNull());
+
 }
 
 bool MainWindow::saveFile(const QString &fileName) {
@@ -284,6 +302,10 @@ void MainWindow::about() {
          "(QScrollArea::widgetResizable), can be used to implement "
          "zooming and scaling features. </p><p>In addition the example "
          "shows how to use QPainter to print an image.</p>"));
+}
+void MainWindow::optimizationPass()
+{
+    qDebug()<< "optimistion" <<Qt::endl;
 }
 // Souvent : optimize(Triangulation, )
 // A chaque frame : rendererer->render(triangulation_optimisee, )

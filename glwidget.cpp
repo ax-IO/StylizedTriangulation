@@ -43,8 +43,8 @@ void GLWidget::initializeGL() {
 //  }
 
 
-  TriangulationOptimizer tri_opt;
-  tri_opt.optimize(tri, tex);
+//  TriangulationOptimizer tri_opt;
+//  tri_opt.optimize(tri, tex);
 
 //  m_tri_opt = new TriangulationOptimizer;
 //  m_tri_opt->optimize(tri, tex);

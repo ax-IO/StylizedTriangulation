@@ -51,6 +51,10 @@ private:
   QAction *zoomOutAct;
   QAction *normalSizeAct;
   QAction *fitToWindowAct;
+  QAction *renderModeConstantAct;
+  QAction *renderModeGradientAct;
+  QAction *optimizationPassAct;
+
 
   GLuint texture;
 
@@ -62,5 +66,6 @@ private slots:
   void normalSize();
   void fitToWindow();
   void about();
+  void optimizationPass();
 };
 #endif // MAINWINDOW_H
