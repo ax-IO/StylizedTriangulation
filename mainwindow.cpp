@@ -156,7 +156,7 @@ void MainWindow::createActions() {
 
   optimizationSplitPassAct = renderMenu->addAction(tr("Passe d'optimisation Split"), this, &MainWindow::callOptimizationSplitPass);
   optimizationSplitPassAct->setShortcut(tr("s"));
-  optimizationSplitsPassAct->setEnabled(false);
+  optimizationSplitPassAct->setEnabled(false);
   //------------------------------------------------------------------------------------------
   QMenu *helpMenu = menuBar()->addMenu(tr("&Aide"));
 
@@ -312,13 +312,13 @@ void MainWindow::callOptimizationPass()
 {
     qDebug()<< "callOptimizationPass() :";
     openGL->optimizationPass();
-//    openGL->update() ;
+    openGL->update() ;
 }
 void MainWindow::callOptimizationSplitPass()
 {
     qDebug()<< "callOptimizationSplitPass() :";
     openGL->optimizationSplitPass();
-//    openGL->update() ;
+    openGL->update() ;
 }
 // Souvent : optimize(Triangulation, )
 // A chaque frame : rendererer->render(triangulation_optimisee, )

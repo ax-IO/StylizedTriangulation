@@ -46,7 +46,7 @@ void GLWidget::initializeGL() {
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     m_renderer = new Renderer;
-  Triangulation tri{3};
+  Triangulation tri{12};
 
 
 //  for (int i = 0; i< 8; i++)
@@ -77,7 +77,7 @@ void GLWidget::paintGL() {
   // Rendu
 //  Renderer renderer;
 //  renderer.render(m_tri, tex, 1);
-  m_renderer->render(m_tri, tex, 1);
+  m_renderer->render(m_tri, tex, COLOR_GRADIENT);
 
   // Exporter la texture puis en QImage
 }

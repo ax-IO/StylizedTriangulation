@@ -189,7 +189,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
         indice_buffer.bind();
         gl_fct->glDrawElements(GL_TRIANGLES, tri.triangles().size() * 3, GL_UNSIGNED_INT, nullptr);
 
-        if(style == COLOR_LINEAR && first_pass)
+        if(style == COLOR_GRADIENT && first_pass)
         {
             first_pass = false;
             gl_fct->glMemoryBarrier(GL_ALL_BARRIER_BITS);
