@@ -124,7 +124,7 @@ namespace
         return result;
     }
     
-    void applyOptimization(const Triangulation& triangulation, const std::vector<TriangulationOptimizer::ErrorData>& error_data, float step, float step_clamp_pixel, float regularisation, float pixel_width, float pixel_height)
+    void applyOptimization(Triangulation& triangulation, const std::vector<TriangulationOptimizer::ErrorData>& error_data, float step, float step_clamp_pixel, float regularisation, float pixel_width, float pixel_height)
     {
         auto triangles_per_vertex = computeTrianglesPerVertex(triangulation);
 
@@ -314,7 +314,7 @@ void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned tex
 
     auto error_data = computeErrors(triangulation, w, h);
     
-    applyOptimization(triangulation, error_data, _step, _step_clamp_pixel, _regularisation, float pixel_width, float pixel_height);
+    applyOptimization(triangulation, error_data, _step, _step_clamp_pixel, _regularisation, pixel_width, pixel_height);
 }
 
 void TriangulationOptimizer::optimizeSplit(Triangulation& triangulation, unsigned texture_handle)
@@ -329,7 +329,7 @@ void TriangulationOptimizer::optimizeSplit(Triangulation& triangulation, unsigne
 
     auto error_data = computeErrors(triangulation, w, h);
     
-    applyOptimization(triangulation, error_data, _step, _step_clamp_pixel, _regularisation, float pixel_width, float pixel_height);
+    applyOptimization(triangulation, error_data, _step, _step_clamp_pixel, _regularisation, pixel_width, pixel_height);
 
     std::size_t tri_count = triangulation.triangles().size();
     unsigned long long total_count = 0;
@@ -344,7 +344,7 @@ void TriangulationOptimizer::optimizeSplit(Triangulation& triangulation, unsigne
     }
 
     //There can be new vertices and triangles, so recompute the map
-    triangles_per_vertex = computeTrianglesPerVertex(triangulation);
+    auto triangles_per_vertex = computeTrianglesPerVertex(triangulation);
 
     for(unsigned t = 0; t < triangulation.triangles().size(); ++t)
     {
