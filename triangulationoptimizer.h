@@ -14,8 +14,9 @@ public:
     TriangulationOptimizer(const TriangulationOptimizer&) = delete;
     ~TriangulationOptimizer();
     void optimize (Triangulation&, unsigned int);
+    void optimizeSplit (Triangulation&, unsigned int);
 
-//private:
+private:
     std::vector<ErrorData> computeErrors(const Triangulation&, int, int);
 
     QOpenGLShaderProgram _programs[2];
