@@ -12,7 +12,7 @@ struct Triangle_frag
 struct Linear_coeff
 {
     //A est une matrice symétrique -> besoin de stocker 6 coefficients seulement
-    int A_upper[6] = {0};
+    uint A_upper[6] = {0};
     uint R_b_vec[3] = {0};
     uint G_b_vec[3] = {0};
     uint B_b_vec[3] = {0};
@@ -27,7 +27,7 @@ struct Computed_coeff
 
 
 // mapper les 6 coefficients accumulés dans le shader dans la partie inférieure de la matrice.
-void map_coeff_to_matrix(int comp[6], gsl_matrix* output)
+void map_coeff_to_matrix(uint comp[6], gsl_matrix* output)
 {
     gsl_matrix_set_all(output, 0);
     gsl_matrix_set(output, 0, 0, comp[0]);
@@ -142,21 +142,20 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 
     //TEXTURE
     int h,w;
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+    gl_fct->glActiveTexture(GL_TEXTURE0);
+    gl_fct->glBindTexture(GL_TEXTURE_2D, tex);
+    gl_fct->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+    gl_fct->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
     std::cout<<"texture w, h : "<<w<< ", "<<h<<std::endl;
-    glViewport(0, 0, w, h);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glEnableClientState(GL_VERTEX_ARRAY);
+    gl_fct->glViewport(0, 0, w, h);
+    gl_fct->glClear(GL_COLOR_BUFFER_BIT);
+    gl_fct->glEnableVertexAttribArray(0);
 
 
     //VERTICES
     vertex_buffer.bind();
-    glVertexPointer(2, GL_FLOAT, 0, NULL);
-    vertex_buffer.release();
+    gl_fct->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
     //SSBO
     if(style == COLOR_CONSTANT)
@@ -188,12 +187,12 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 
         //DRAW
         indice_buffer.bind();
-        glDrawElements(GL_TRIANGLES, tri.triangles().size() * 3, GL_UNSIGNED_INT, nullptr);
-        indice_buffer.release();
+        gl_fct->glDrawElements(GL_TRIANGLES, tri.triangles().size() * 3, GL_UNSIGNED_INT, nullptr);
 
         if(style == COLOR_LINEAR && first_pass)
         {
             first_pass = false;
+            gl_fct->glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
             std::vector<Linear_coeff> computed(tri.triangles().size());
             gl_fct_special->glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, tri.triangles().size()*sizeof(Linear_coeff), &computed[0]);
@@ -204,7 +203,11 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 //A
                 gsl_matrix* A_matrix = gsl_matrix_alloc(3, 3);
                 map_coeff_to_matrix(tri_matrices.A_upper, A_matrix);
+                for(int i = 0; i < 6; i ++)
+                {
+                    std::cout<<tri_matrices.A_upper[i]<<std::endl;
 
+                }
                 //Décomposition de la matrice A en L^t*L
                 gsl_linalg_cholesky_decomp(A_matrix);
 
@@ -224,6 +227,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 //solver Ax = b pour chaque canal (on réutilise la même décomposition de A)
                 Computed_coeff to_load;
                 gsl_vector* abc = gsl_vector_alloc(3);
+
 
                 gsl_linalg_cholesky_solve(A_matrix, R_b, abc);
                 for(int i = 0; i < 3; i ++) to_load.R[i] = gsl_vector_get(abc, i);
@@ -266,7 +270,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 //        tri_id ++;
 //    }
     //CLEAN
-    glDisableClientState(GL_VERTEX_ARRAY);
+//    glDisableClientState(GL_VERTEX_ARRAY);
     vertex_buffer.release();
     indice_buffer.release();
     gl_fct->glDeleteBuffers(1, &storage_buffer);
