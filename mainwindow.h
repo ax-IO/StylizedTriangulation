@@ -51,8 +51,10 @@ private:
   QAction *zoomOutAct;
   QAction *normalSizeAct;
   QAction *fitToWindowAct;
+
   QAction *renderModeConstantAct;
   QAction *renderModeGradientAct;
+
   QAction *optimizationPassAct;
   QAction *optimizationSplitPassAct;
 
@@ -68,6 +70,12 @@ private slots:
   void normalSize();
   void fitToWindow();
   void about();
+
+  void showSlider();
+
+  void callRenderModeConstant();
+  void callRenderModeGradient();
+
   void callOptimizationPass();
   void callOptimizationSplitPass();
 };

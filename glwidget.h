@@ -30,6 +30,9 @@ public:
 
   ~GLWidget();
 
+  void renderModeConstant();
+  void renderModeGradient();
+
   void optimizationPass();
   void optimizationSplitPass();
 protected:
@@ -49,6 +52,8 @@ private:
 
   int m_width;
   int m_height;
+
+  int m_renderMode;
 
   Renderer *m_renderer;
   Triangulation m_tri;

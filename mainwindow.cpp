@@ -22,12 +22,15 @@
 
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
+#include <QPushButton>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), scrollArea(new QScrollArea), imageLabel(new QLabel) {
 
-    imageLabel->setBackgroundRole(QPalette::Base);
-    imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    imageLabel->setScaledContents(true);
+  imageLabel->setBackgroundRole(QPalette::Base);
+  imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+  imageLabel->setScaledContents(true);
+
+
 
   createActions();
   resize(QGuiApplication::primaryScreen()->availableSize() * (3.0f / 5.0f));
@@ -87,6 +90,7 @@ bool MainWindow::loadFile(const QString &fileName) {
 
   setCentralWidget(openGL);
 
+
 //------------------------------------------------------------------------------------------
   return true;
 }
@@ -140,11 +144,11 @@ void MainWindow::createActions() {
   //------------------------------------------------------------------------------------------
   QMenu *renderMenu = menuBar()->addMenu(tr("&Modes de rendu"));
 
-  renderModeConstantAct = renderMenu->addAction(tr("Constant"), this, &MainWindow::about);
+  renderModeConstantAct = renderMenu->addAction(tr("Constant"), this, &MainWindow::callRenderModeConstant);
   renderModeConstantAct->setShortcut(tr("Ctrl+&"));
   renderModeConstantAct->setEnabled(false);
 
-  renderModeGradientAct = renderMenu->addAction(tr("Gradient"), this, &MainWindow::about);
+  renderModeGradientAct = renderMenu->addAction(tr("Gradient"), this, &MainWindow::callRenderModeGradient);
   renderModeGradientAct->setShortcut(tr("Ctrl+é"));
   renderModeGradientAct->setEnabled(false);
 
@@ -308,6 +312,25 @@ void MainWindow::about() {
          "zooming and scaling features. </p><p>In addition the example "
          "shows how to use QPainter to print an image.</p>"));
 }
+
+void MainWindow::showSlider()
+{
+    QPushButton *button1 = new QPushButton("One");
+    button1->show();
+}
+
+void MainWindow::callRenderModeConstant()
+{
+    openGL->renderModeConstant();
+    openGL->update() ;
+}
+
+void MainWindow::callRenderModeGradient()
+{
+    openGL->renderModeGradient();
+    openGL->update() ;
+}
+
 void MainWindow::callOptimizationPass()
 {
     qDebug()<< "callOptimizationPass() :";

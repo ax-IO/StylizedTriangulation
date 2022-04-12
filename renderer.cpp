@@ -205,7 +205,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 map_coeff_to_matrix(tri_matrices.A_upper, A_matrix);
                 for(int i = 0; i < 6; i ++)
                 {
-                    std::cout<<tri_matrices.A_upper[i]<<std::endl;
+//                    std::cout<<tri_matrices.A_upper[i]<<std::endl;
 
                 }
                 //Décomposition de la matrice A en L^t*L

@@ -13,6 +13,18 @@ GLWidget::~GLWidget()
     delete m_tri_opt;
 }
 
+void GLWidget::renderModeConstant()
+{
+    qDebug() << "Render Mode Changed : Constant";
+    m_renderMode = COLOR_CONSTANT;
+}
+
+void GLWidget::renderModeGradient()
+{
+    qDebug() << "Render Mode Changed : Gradient";
+    m_renderMode = COLOR_GRADIENT;
+}
+
 void GLWidget::optimizationPass()
 {
     qDebug() << "Passe d'optimisation";
@@ -33,6 +45,7 @@ void GLWidget::initializeGL() {
   gl_fct->glClearColor(r, g, b, 1.0f);
 
   QImage img(fp);
+  m_renderMode = COLOR_CONSTANT;
   m_width = img.width();
   m_height = img.height();
 
@@ -45,7 +58,7 @@ void GLWidget::initializeGL() {
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    m_renderer = new Renderer;
+  m_renderer = new Renderer;
   Triangulation tri{12};
 
 
@@ -77,7 +90,7 @@ void GLWidget::paintGL() {
   // Rendu
 //  Renderer renderer;
 //  renderer.render(m_tri, tex, 1);
-  m_renderer->render(m_tri, tex, COLOR_GRADIENT);
+  m_renderer->render(m_tri, tex, m_renderMode);
 
   // Exporter la texture puis en QImage
 }
