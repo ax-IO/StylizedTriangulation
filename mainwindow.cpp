@@ -24,7 +24,7 @@
 #include <QOpenGLFunctions>
 #include <QPushButton>
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), scrollArea(new QScrollArea), imageLabel(new QLabel) {
+    : QMainWindow(parent), scrollArea(new QScrollArea), imageLabel(new QLabel), resolutionSpinBox (new QSpinBox) {
 
   imageLabel->setBackgroundRole(QPalette::Base);
   imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -144,13 +144,18 @@ void MainWindow::createActions() {
   //------------------------------------------------------------------------------------------
   QMenu *renderMenu = menuBar()->addMenu(tr("&Modes de rendu"));
 
-  renderModeConstantAct = renderMenu->addAction(tr("Constant"), this, &MainWindow::callRenderModeConstant);
+  renderModeConstantAct = renderMenu->addAction(tr("Mode de rendu Constant"), this, &MainWindow::callRenderModeConstant);
   renderModeConstantAct->setShortcut(tr("Ctrl+&"));
   renderModeConstantAct->setEnabled(false);
 
-  renderModeGradientAct = renderMenu->addAction(tr("Gradient"), this, &MainWindow::callRenderModeGradient);
+  renderModeGradientAct = renderMenu->addAction(tr("Mode de rendu Gradient"), this, &MainWindow::callRenderModeGradient);
   renderModeGradientAct->setShortcut(tr("Ctrl+é"));
   renderModeGradientAct->setEnabled(false);
+
+  renderMenu->addSeparator();
+  showResolutionWindowAct= renderMenu->addAction(tr("Changer la résolution"), this, &MainWindow::showResolutionWindow);
+  showResolutionWindowAct->setShortcut(tr("Ctrl+r"));
+  showResolutionWindowAct->setEnabled(false);
 
   renderMenu->addSeparator();
 
@@ -161,6 +166,9 @@ void MainWindow::createActions() {
   optimizationSplitPassAct = renderMenu->addAction(tr("Passe d'optimisation Split"), this, &MainWindow::callOptimizationSplitPass);
   optimizationSplitPassAct->setShortcut(tr("s"));
   optimizationSplitPassAct->setEnabled(false);
+
+
+
   //------------------------------------------------------------------------------------------
   QMenu *helpMenu = menuBar()->addMenu(tr("&Aide"));
 
@@ -177,6 +185,7 @@ void MainWindow::updateActions() {
 
   renderModeConstantAct->setEnabled(!image.isNull());
   renderModeGradientAct->setEnabled(!image.isNull());
+  showResolutionWindowAct->setEnabled(!image.isNull());
   optimizationPassAct->setEnabled(!image.isNull());
   optimizationSplitPassAct->setEnabled(!image.isNull());
 
@@ -313,10 +322,37 @@ void MainWindow::about() {
          "shows how to use QPainter to print an image.</p>"));
 }
 
-void MainWindow::showSlider()
+void MainWindow::showResolutionWindow()
 {
-    QPushButton *button1 = new QPushButton("One");
-    button1->show();
+    QWidget *resolutionWindow = new QWidget;
+
+    int min = 0;
+    int max = 2000;
+
+    QLabel *resolutionintegerLabel = new QLabel(tr("Enter a value between ""%1 and %2:").arg(min).arg(max));
+
+    resolutionSpinBox->setRange(min, max);
+    resolutionSpinBox->setSingleStep(1);
+//    resolutionSpinBox->setValue(0);
+    resolutionSpinBox->setValue(openGL->getGridResolution());
+    connect(resolutionSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callChangeResolution);
+    QPushButton *applyResolutionButton = new QPushButton("Appliquer");
+    connect(applyResolutionButton, &QPushButton::released, this, &MainWindow::callChangeResolution);
+
+    QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
+
+    layout->addWidget(resolutionintegerLabel);
+    layout->addWidget(resolutionSpinBox);
+    layout->addWidget(applyResolutionButton);
+    resolutionWindow->show();
+}
+
+void MainWindow::callChangeResolution()
+{
+    int resolution = resolutionSpinBox->value();
+//    qDebug()<<"Change Resolution"<< resolution;
+    openGL->changeGridResolution(resolution);
+    openGL->update();
 }
 
 void MainWindow::callRenderModeConstant()

@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QScrollArea>
+#include <QSpinBox>
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -55,6 +56,9 @@ private:
   QAction *renderModeConstantAct;
   QAction *renderModeGradientAct;
 
+  QAction *showResolutionWindowAct;
+  QSpinBox *resolutionSpinBox;
+
   QAction *optimizationPassAct;
   QAction *optimizationSplitPassAct;
 
@@ -71,7 +75,8 @@ private slots:
   void fitToWindow();
   void about();
 
-  void showSlider();
+  void showResolutionWindow();
+  void callChangeResolution();
 
   void callRenderModeConstant();
   void callRenderModeGradient();

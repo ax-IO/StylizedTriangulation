@@ -30,6 +30,9 @@ public:
 
   ~GLWidget();
 
+  int getGridResolution();
+  void changeGridResolution(int resolution);
+
   void renderModeConstant();
   void renderModeGradient();
 
@@ -53,6 +56,7 @@ private:
   int m_width;
   int m_height;
 
+  size_t m_gridResolution;
   int m_renderMode;
 
   Renderer *m_renderer;

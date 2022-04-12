@@ -13,6 +13,18 @@ GLWidget::~GLWidget()
     delete m_tri_opt;
 }
 
+int GLWidget::getGridResolution()
+{
+    return m_gridResolution;
+}
+
+void GLWidget::changeGridResolution(int resolution)
+{
+    qDebug() << "New grid resolution :"<<resolution<<"--> ("<<resolution+ 2<< ","<<resolution +2<<")";
+    m_gridResolution = resolution;
+    m_tri = Triangulation{m_gridResolution};
+}
+
 void GLWidget::renderModeConstant()
 {
     qDebug() << "Render Mode Changed : Constant";
@@ -46,6 +58,7 @@ void GLWidget::initializeGL() {
 
   QImage img(fp);
   m_renderMode = COLOR_CONSTANT;
+  m_gridResolution = 2;
   m_width = img.width();
   m_height = img.height();
 
@@ -59,18 +72,8 @@ void GLWidget::initializeGL() {
   gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   m_renderer = new Renderer;
-  Triangulation tri{12};
 
-
-//  for (int i = 0; i< 8; i++)
-//  {
-//      tri_opt.optimize(tri, tex);
-//  }
-
-
-//  TriangulationOptimizer tri_opt;
-//  tri_opt.optimizeSplit(tri, tex);
-//  tri_opt.optimize(tri, tex);
+  m_tri = Triangulation{m_gridResolution};
 
   m_tri_opt = new TriangulationOptimizer;
 //  m_tri_opt->optimize(tri, tex);
@@ -78,7 +81,6 @@ void GLWidget::initializeGL() {
 //    for (int i =0;i< tri.size() ; i++) {
 //        qDebug()<<"vertex "<< i<<" = ("<<tri.vertices()[i].x<<","<<tri.vertices()[i].y<<")"<<Qt::endl;
 //    }
-  m_tri = tri;
 }
 
 void GLWidget::paintGL() {
