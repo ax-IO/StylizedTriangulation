@@ -17,7 +17,7 @@
 //#include <gsl/gsl_linalg.h>
 //#include <gsl/gsl_errno.h>
 
-#define COLOR_LINEAR 0
+#define COLOR_GRADIENT 0
 #define COLOR_CONSTANT 1
 
 class Renderer
