@@ -142,14 +142,14 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 
     //TEXTURE
     int h,w;
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+    gl_fct->glActiveTexture(GL_TEXTURE0);
+    gl_fct->glBindTexture(GL_TEXTURE_2D, tex);
+    gl_fct->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+    gl_fct->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
     std::cout<<"texture w, h : "<<w<< ", "<<h<<std::endl;
-    glViewport(0, 0, w, h);
-    glClear(GL_COLOR_BUFFER_BIT);
+    gl_fct->glViewport(0, 0, w, h);
+    gl_fct->glClear(GL_COLOR_BUFFER_BIT);
     glEnableClientState(GL_VERTEX_ARRAY);
 
 
