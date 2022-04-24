@@ -21,6 +21,7 @@ public:
 
     bool event(QEvent *event) override;
     void exposeEvent(QExposeEvent *event) override;
+    QOpenGLExtraFunctions* gl_fct;
 
 private:
 };

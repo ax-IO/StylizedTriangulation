@@ -44,5 +44,5 @@ INCLUDEPATH += $$PWD/lib/
 
 
 #installer gsl
-LIBS += -L /usr/include/gsl -lgsl -lgslcblas
+#LIBS += -L /usr/include/gsl -lgsl -lgslcblas
 

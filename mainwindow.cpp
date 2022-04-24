@@ -21,6 +21,7 @@ bool MainWindow::event(QEvent *event)
     QOpenGLContext context(this);
     context.create();
     context.makeCurrent(this);
+    gl_fct = QOpenGLContext::currentContext()->extraFunctions();
 
 //    QImage img(QString(":/toast.png"));
     QImage img(QString(":/capy.png"));
@@ -29,11 +30,11 @@ bool MainWindow::event(QEvent *event)
 
     //texture setup
     GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl_fct->glGenTextures(1, &tex);
+    gl_fct->glBindTexture(GL_TEXTURE_2D, tex);
+    gl_fct->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+    gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     Triangulation tri{5};
     TriangulationOptimizer tri_opt;

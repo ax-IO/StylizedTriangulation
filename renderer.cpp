@@ -128,7 +128,7 @@ void Renderer::init_buffers(const Triangulation& tri, int style){
         gl_fct->glBufferData(GL_SHADER_STORAGE_BUFFER, tri.triangles().size() * sizeof(Linear_coeff), coeff_storage.data(), GL_DYNAMIC_COPY);
     }
 
-    glDisable(GL_DEPTH_TEST);
+    gl_fct->glDisable(GL_DEPTH_TEST);
 }
 
 void Renderer::init_GL(){
