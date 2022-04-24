@@ -58,6 +58,9 @@ void main(void)
         int x = int(gl_FragCoord.x);
         int y = int(gl_FragCoord.y);
 
+//        int x = int(uv.x);
+//        int y = int(uv.y);
+
         //A matrix
         atomicAdd(coeff[gl_PrimitiveID].A_upper[0], x*x);
         atomicAdd(coeff[gl_PrimitiveID].A_upper[1], x*y);

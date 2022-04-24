@@ -9,7 +9,8 @@
 #include <QOpenGLFunctions_2_0>
 #include <QOpenGLExtraFunctions>
 
-#include "gsl/gsl_linalg.h" //librairie à installer (pour calcul de la couleur linéaire)
+#include "Eigen/Cholesky"
+#include "Eigen/SparseCholesky"
 //#include "gsl_matrix.h"
 //#include "gsl_errno.h"
 

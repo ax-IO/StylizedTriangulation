@@ -35,15 +35,15 @@ bool MainWindow::event(QEvent *event)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    Triangulation tri{3};
+    Triangulation tri{5};
     TriangulationOptimizer tri_opt;
-    for(int i = 0; i < 50; i ++)
+    for(int i = 0; i < 1; i ++)
     {
         tri_opt.optimize(tri, tex);
     }
 
     Renderer renderer;
-    renderer.render(tri, tex, 0);
+    renderer.render(tri, tex, COLOR_GRADIENT);
 
 //    for(Vec2 coord : tri.vertices()){
 //        std::cout<<"("<<coord.x<<", "<<coord.y<<")"<<std::endl;
