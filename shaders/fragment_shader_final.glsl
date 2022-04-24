@@ -34,6 +34,7 @@ in vec2 uv;
 
 void main(void)
 {
+    memoryBarrierBuffer();
 
 //    color =vec4(float(gl_PrimitiveID/8), 0, 0, 1); //goal
     if(color_constant)
@@ -58,6 +59,7 @@ void main(void)
 
         color = vec4(r/float(255.), g/float(255.), b/float(255.), 1);
     }
+    memoryBarrierBuffer();
 
 
 }
