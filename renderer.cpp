@@ -40,9 +40,9 @@ struct Computed_coeff
 //}
 
 // Matrice dont la partie supérieure seulement est remplie
-Eigen::SparseMatrix<unsigned> matrix_from_coeff(uint comp[6])
+Eigen::SparseMatrix<float> matrix_from_coeff(uint comp[6])
 {
-    Eigen::SparseMatrix<unsigned> output(3, 3);
+    Eigen::SparseMatrix<float> output(3, 3);
 //    output(0,0) = comp[0];
 //    output(0,1) = comp[1];
 //    output(0,2) = comp[2];
@@ -51,7 +51,7 @@ Eigen::SparseMatrix<unsigned> matrix_from_coeff(uint comp[6])
 //    output(1,2) = comp[4];
 
 //    output(2,2) = comp[5];
-    std::vector<Eigen::Triplet<unsigned>> entries;
+    std::vector<Eigen::Triplet<float>> entries;
     entries.reserve(6);
 
     int k = 0;
@@ -59,7 +59,7 @@ Eigen::SparseMatrix<unsigned> matrix_from_coeff(uint comp[6])
     {
         for(int j = i; j < 3; j ++)
         {
-            entries.push_back(Eigen::Triplet<unsigned>(i, j, comp[k]));
+            entries.push_back(Eigen::Triplet<float>(i, j, comp[k]));
             k++;
         }
     }
@@ -217,7 +217,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
             // Décomposition de Cholesky pour calculer a, b et c à partir de la matrice remplie en première passe pour chaque triangle
             for(Linear_coeff tri_matrices : computed)
             {
-                Eigen::SparseMatrix<unsigned> A_mat = matrix_from_coeff(tri_matrices.A_upper);
+                Eigen::SparseMatrix<float> A_mat = matrix_from_coeff(tri_matrices.A_upper);
                 std::cout<<"EIGEN MATRIX UPPER ONLY?"<<std::endl;
                 for(int i = 0; i < 3; i ++)
                 {
@@ -235,7 +235,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 //Décomposition de la matrice A en L^t*L
 //                gsl_linalg_cholesky_decomp(A_matrix);
 //eigen
-                Eigen::SimplicialLLT<Eigen::SparseMatrix<unsigned>, Eigen::Upper> solver;
+                Eigen::SimplicialLLT<Eigen::SparseMatrix<float>, Eigen::Upper> solver;
 //                Eigen::SimplicialCholesky<Eigen::SparseMatrix<unsigned>> solver;
 
                 solver.compute(A_mat);
@@ -258,7 +258,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 //                }
 
 //eigen
-                Eigen::Vector3<unsigned> rb, gb, bb;
+                Eigen::Vector3<float> rb, gb, bb;
                 for(int i = 0; i < 3; i ++)
                 {
                     rb(i) =  tri_matrices.R_b_vec[i];
@@ -281,7 +281,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 //                for(int i = 0; i < 3; i ++) to_load.B[i] = gsl_vector_get(abc, i);
 
 
-                Eigen::Vector3<unsigned> abc;
+                Eigen::Vector3<float> abc;
                 abc = solver.solve(rb);
                 if(solver.info() != Eigen::Success)
                 {
@@ -306,6 +306,9 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 }
                 for(int i = 0; i < 3; i ++) to_load.B[i] = abc(i); /*std::cout<<"ABC BB "<<abc(i)<<std::endl;*/
 
+                std::cout<<"ABC R computed: "<<to_load.R[0]<<", "<<to_load.R[1]<<", "<<to_load.R[2]<<std::endl;
+                std::cout<<"ABC G computed: "<<to_load.G[0]<<", "<<to_load.G[1]<<", "<<to_load.G[2]<<std::endl;
+                std::cout<<"ABC B computed: "<<to_load.B[0]<<", "<<to_load.B[1]<<", "<<to_load.B[2]<<std::endl;
 
                 //Ajout dans le tableau des coefficients (abc) calculés pour le triangle courant à charger au gpu plus tard.
                 lin_coeff[coeff_index] = to_load;

@@ -59,7 +59,7 @@ void main(void)
         float b = abc[gl_PrimitiveID].B[0] * x + abc[gl_PrimitiveID].B[1] * y + abc[gl_PrimitiveID].B[2];
 
         color = vec4(r/float(255.), g/float(255.), b/float(255.), 1);
-//        color = vec4(r, g, b, 1);
+//        color = gl_PrimitiveID*vec4(0., 0.01, 0., 1);
 
     }
     memoryBarrierBuffer();
