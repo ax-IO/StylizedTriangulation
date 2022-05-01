@@ -21,7 +21,6 @@ public:
   ~MainWindow();
   bool loadFile(const QString &);
 
-
 private:
   void createActions();
   void updateActions();

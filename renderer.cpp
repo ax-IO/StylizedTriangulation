@@ -27,28 +27,45 @@ struct Computed_coeff
 
 
 // mapper les 6 coefficients accumulés dans le shader dans la partie inférieure de la matrice.
-void map_coeff_to_matrix(uint comp[6], gsl_matrix* output)
-{
-    gsl_matrix_set_all(output, 0);
-    gsl_matrix_set(output, 0, 0, comp[0]);
-    gsl_matrix_set(output, 1, 0, comp[1]);
-    gsl_matrix_set(output, 1, 1, comp[3]);
-    gsl_matrix_set(output, 2, 0, comp[2]);
-    gsl_matrix_set(output, 2, 1, comp[4]);
-    gsl_matrix_set(output, 2, 2, comp[5]);
+//void map_coeff_to_matrix(uint comp[6], gsl_matrix* output)
+//{
+//    gsl_matrix_set_all(output, 0);
+//    gsl_matrix_set(output, 0, 0, comp[0]);
+//    gsl_matrix_set(output, 1, 0, comp[1]);
+//    gsl_matrix_set(output, 1, 1, comp[3]);
+//    gsl_matrix_set(output, 2, 0, comp[2]);
+//    gsl_matrix_set(output, 2, 1, comp[4]);
+//    gsl_matrix_set(output, 2, 2, comp[5]);
 
-}
+//}
 
-void print_gsl_mat(gsl_matrix m)
+// Matrice dont la partie supérieure seulement est remplie
+Eigen::SparseMatrix<float> matrix_from_coeff(uint comp[6])
 {
+    Eigen::SparseMatrix<float> output(3, 3);
+//    output(0,0) = comp[0];
+//    output(0,1) = comp[1];
+//    output(0,2) = comp[2];
+
+//    output(1,1) = comp[3];
+//    output(1,2) = comp[4];
+
+//    output(2,2) = comp[5];
+    std::vector<Eigen::Triplet<float>> entries;
+    entries.reserve(6);
+
+    int k = 0;
     for(int i = 0; i < 3; i ++)
     {
-        for(int j = 0; j < 3; j ++)
+        for(int j = i; j < 3; j ++)
         {
-            std::cout<<gsl_matrix_get(&m, i, j)<<" ";
+            entries.push_back(Eigen::Triplet<float>(i, j, comp[k]));
+            k++;
         }
-        std::cout<<std::endl;
     }
+
+    output.setFromTriplets(entries.begin(), entries.end());
+    return output;
 }
 
 // Flatten triangles to send to DrawElements
@@ -111,7 +128,7 @@ void Renderer::init_buffers(const Triangulation& tri, int style){
         gl_fct->glBufferData(GL_SHADER_STORAGE_BUFFER, tri.triangles().size() * sizeof(Linear_coeff), coeff_storage.data(), GL_DYNAMIC_COPY);
     }
 
-    glDisable(GL_DEPTH_TEST);
+    gl_fct->glDisable(GL_DEPTH_TEST);
 }
 
 void Renderer::init_GL(){
@@ -200,53 +217,109 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
             // Décomposition de Cholesky pour calculer a, b et c à partir de la matrice remplie en première passe pour chaque triangle
             for(Linear_coeff tri_matrices : computed)
             {
-                //A
-                gsl_matrix* A_matrix = gsl_matrix_alloc(3, 3);
-                map_coeff_to_matrix(tri_matrices.A_upper, A_matrix);
-                for(int i = 0; i < 6; i ++)
-                {
-//                    std::cout<<tri_matrices.A_upper[i]<<std::endl;
 
-                }
-                //Décomposition de la matrice A en L^t*L
-                gsl_linalg_cholesky_decomp(A_matrix);
-
-                //b pour chaque canal R, G et B
-                gsl_vector* R_b = gsl_vector_alloc(3);
-                gsl_vector* G_b = gsl_vector_alloc(3);
-                gsl_vector* B_b = gsl_vector_alloc(3);
-
+                Eigen::SparseMatrix<float> A_mat = matrix_from_coeff(tri_matrices.A_upper);
+                std::cout<<"EIGEN MATRIX UPPER ONLY?"<<std::endl;
                 for(int i = 0; i < 3; i ++)
                 {
-                    gsl_vector_set(R_b, i, tri_matrices.R_b_vec[i]);
-                    gsl_vector_set(G_b, i, tri_matrices.G_b_vec[i]);
-                    gsl_vector_set(B_b, i, tri_matrices.B_b_vec[i]);
+                    for(int j = 0; j < 3; j ++)
+                    {
+                        std::cout<<A_mat.coeffRef(i,j)<<" ";
+                    }
+                    std::cout<<std::endl;
                 }
 
+                //A
+//                gsl_matrix* A_matrix = gsl_matrix_alloc(3, 3);
+//                map_coeff_to_matrix(tri_matrices.A_upper, A_matrix);
+
+                //Décomposition de la matrice A en L^t*L
+//                gsl_linalg_cholesky_decomp(A_matrix);
+//eigen
+                Eigen::SimplicialLLT<Eigen::SparseMatrix<float>, Eigen::Upper> solver;
+//                Eigen::SimplicialCholesky<Eigen::SparseMatrix<unsigned>> solver;
+
+                solver.compute(A_mat);
+                if(solver.info() != Eigen::Success)
+                {
+                    std::cout<<"A -> LLT Decomposition failed."<<std::endl;
+                }
+
+
+                //b pour chaque canal R, G et B
+//                gsl_vector* R_b = gsl_vector_alloc(3);
+//                gsl_vector* G_b = gsl_vector_alloc(3);
+//                gsl_vector* B_b = gsl_vector_alloc(3);
+
+//                for(int i = 0; i < 3; i ++)
+//                {
+//                    gsl_vector_set(R_b, i, tri_matrices.R_b_vec[i]);
+//                    gsl_vector_set(G_b, i, tri_matrices.G_b_vec[i]);
+//                    gsl_vector_set(B_b, i, tri_matrices.B_b_vec[i]);
+//                }
+
+//eigen
+                Eigen::Vector3<float> rb, gb, bb;
+                for(int i = 0; i < 3; i ++)
+                {
+                    rb(i) =  tri_matrices.R_b_vec[i];
+                    gb(i) =  tri_matrices.G_b_vec[i];
+                    bb(i) =  tri_matrices.B_b_vec[i];
+                }
 
                 //solver Ax = b pour chaque canal (on réutilise la même décomposition de A)
                 Computed_coeff to_load;
-                gsl_vector* abc = gsl_vector_alloc(3);
+//                gsl_vector* abc = gsl_vector_alloc(3);
 
 
-                gsl_linalg_cholesky_solve(A_matrix, R_b, abc);
-                for(int i = 0; i < 3; i ++) to_load.R[i] = gsl_vector_get(abc, i);
+//                gsl_linalg_cholesky_solve(A_matrix, R_b, abc);
+//                for(int i = 0; i < 3; i ++) to_load.R[i] = gsl_vector_get(abc, i);
 
-                gsl_linalg_cholesky_solve(A_matrix, G_b, abc);
-                for(int i = 0; i < 3; i ++) to_load.G[i] = gsl_vector_get(abc, i);
+//                gsl_linalg_cholesky_solve(A_matrix, G_b, abc);
+//                for(int i = 0; i < 3; i ++) to_load.G[i] = gsl_vector_get(abc, i);
 
-                gsl_linalg_cholesky_solve(A_matrix, B_b, abc);
-                for(int i = 0; i < 3; i ++) to_load.B[i] = gsl_vector_get(abc, i);
+//                gsl_linalg_cholesky_solve(A_matrix, B_b, abc);
+//                for(int i = 0; i < 3; i ++) to_load.B[i] = gsl_vector_get(abc, i);
+
+
+                Eigen::Vector3<float> abc;
+                abc = solver.solve(rb);
+                if(solver.info() != Eigen::Success)
+                {
+                    std::cout<<"SOLVER FOR Ax=b FAILED."<<std::endl;
+                }
+                for(int i = 0; i < 3; i ++){
+                    to_load.R[i] = abc(i);
+                    std::cout<<"ABC RB "<<abc(i)<<std::endl;
+                }
+
+                abc = solver.solve(gb);
+                if(solver.info() != Eigen::Success)
+                {
+                    std::cout<<"SOLVER FOR Ax=b FAILED."<<std::endl;
+                }
+                for(int i = 0; i < 3; i ++) to_load.G[i] = abc(i); /*std::cout<<"ABC GB "<<abc(i)<<std::endl;*/
+
+                abc = solver.solve(bb);
+                if(solver.info() != Eigen::Success)
+                {
+                    std::cout<<"SOLVER FOR Ax=b FAILED."<<std::endl;
+                }
+                for(int i = 0; i < 3; i ++) to_load.B[i] = abc(i); /*std::cout<<"ABC BB "<<abc(i)<<std::endl;*/
+
+                std::cout<<"ABC R computed: "<<to_load.R[0]<<", "<<to_load.R[1]<<", "<<to_load.R[2]<<std::endl;
+                std::cout<<"ABC G computed: "<<to_load.G[0]<<", "<<to_load.G[1]<<", "<<to_load.G[2]<<std::endl;
+                std::cout<<"ABC B computed: "<<to_load.B[0]<<", "<<to_load.B[1]<<", "<<to_load.B[2]<<std::endl;
 
                 //Ajout dans le tableau des coefficients (abc) calculés pour le triangle courant à charger au gpu plus tard.
                 lin_coeff[coeff_index] = to_load;
                 coeff_index ++;
 
                 // libération des matrices et vecteurs utilisés avec gsl
-                gsl_matrix_free(A_matrix);
-                gsl_vector_free(R_b);
-                gsl_vector_free(G_b);
-                gsl_vector_free(B_b);
+//                gsl_matrix_free(A_matrix);
+//                gsl_vector_free(R_b);
+//                gsl_vector_free(G_b);
+//                gsl_vector_free(B_b);
 
             }
 

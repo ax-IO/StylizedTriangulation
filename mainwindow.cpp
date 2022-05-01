@@ -102,6 +102,7 @@ void MainWindow::createActions() {
       fileMenu->addAction(tr("&Ouvrir Image..."), this, &MainWindow::open);
   openAct->setShortcut(QKeySequence::Open);
 
+
   saveAsAct = fileMenu->addAction(tr("Enregistrer &sous..."), this,
                                   &MainWindow::saveAs);
   saveAsAct->setShortcut(QKeySequence::Save);
@@ -224,17 +225,6 @@ void MainWindow::setImage(const QImage &newImage) {
   //        imageLabel->adjustSize();
 }
 
-void MainWindow::loadImageToTexture(const QImage &img) {
-  glEnable(GL_TEXTURE_2D);               // Enable texturing
-  glBindTexture(GL_TEXTURE_2D, texture); // Set as the current texture
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0, GL_BGRA,
-               GL_UNSIGNED_BYTE, img.bits());
-  //    glFinish();
-  glDisable(GL_TEXTURE_2D);
-}
 
 void MainWindow::scaleImage(double factor) {}
 
