@@ -12,6 +12,9 @@
 #include <QMainWindow>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QRadioButton>
+
+enum OptimisationType { NORMAL, SPLIT };
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -32,6 +35,15 @@ private:
 
   int filebar_height = 34;
   int statusbar_height = 27;
+
+
+  QSpinBox *resolutionSpinBox;
+  QSpinBox *optimizationSpeedSpinBox;
+
+  int optimisationType = NORMAL;
+  QTimer *optimisationTimer;
+  int optimisationTimeInterval=999;
+
 
   QImage image;
   QImage image_to_save;
@@ -56,10 +68,10 @@ private:
   QAction *renderModeGradientAct;
 
   QAction *showResolutionWindowAct;
-  QSpinBox *resolutionSpinBox;
 
   QAction *optimizationPassAct;
   QAction *optimizationSplitPassAct;
+  QAction *optimizationContinuousAct;
 
 
 
@@ -80,7 +92,15 @@ private slots:
   void callRenderModeConstant();
   void callRenderModeGradient();
 
-  void callOptimizationPass();
+  void callOptimizationlPass();
+  void callOptimizationNormalPass();
   void callOptimizationSplitPass();
+  void callOptimizationContinuous();
+  void callOptimizationTypeChangeToNormal();
+  void callOptimizationTypeChangeToSplit();
+  void callOptimizationContinuousPause();
+  void callOptimizationContinuousPlay();
+  void callChangeOptimizationSpeed();
+
 };
 #endif // MAINWINDOW_H

@@ -164,7 +164,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
     gl_fct->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
     gl_fct->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
-    std::cout<<"texture w, h : "<<w<< ", "<<h<<std::endl;
+//    std::cout<<"texture w, h : "<<w<< ", "<<h<<std::endl;
     gl_fct->glViewport(0, 0, w, h);
     gl_fct->glClear(GL_COLOR_BUFFER_BIT);
     gl_fct->glEnableVertexAttribArray(0);
@@ -177,12 +177,12 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
     //SSBO
     if(style == COLOR_CONSTANT)
     {
-        std::cout<<"Couleur constante"<<std::endl;
+//        std::cout<<"Couleur constante"<<std::endl;
         gl_fct->glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, storage_buffer);
     }
     else
     {
-        std::cout<<"Couleur gradients linéaires"<<std::endl;
+//        std::cout<<"Couleur gradients linéaires"<<std::endl;
         gl_fct->glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, storage_buffer);
 
     }
@@ -219,15 +219,15 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
             {
 
                 Eigen::SparseMatrix<float> A_mat = matrix_from_coeff(tri_matrices.A_upper);
-                std::cout<<"EIGEN MATRIX UPPER ONLY?"<<std::endl;
-                for(int i = 0; i < 3; i ++)
-                {
-                    for(int j = 0; j < 3; j ++)
-                    {
-                        std::cout<<A_mat.coeffRef(i,j)<<" ";
-                    }
-                    std::cout<<std::endl;
-                }
+//                std::cout<<"EIGEN MATRIX UPPER ONLY?"<<std::endl;
+//                for(int i = 0; i < 3; i ++)
+//                {
+//                    for(int j = 0; j < 3; j ++)
+//                    {
+//                        std::cout<<A_mat.coeffRef(i,j)<<" ";
+//                    }
+//                    std::cout<<std::endl;
+//                }
 
                 //A
 //                gsl_matrix* A_matrix = gsl_matrix_alloc(3, 3);
@@ -290,7 +290,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 }
                 for(int i = 0; i < 3; i ++){
                     to_load.R[i] = abc(i);
-                    std::cout<<"ABC RB "<<abc(i)<<std::endl;
+//                    std::cout<<"ABC RB "<<abc(i)<<std::endl;
                 }
 
                 abc = solver.solve(gb);
@@ -307,9 +307,9 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 }
                 for(int i = 0; i < 3; i ++) to_load.B[i] = abc(i); /*std::cout<<"ABC BB "<<abc(i)<<std::endl;*/
 
-                std::cout<<"ABC R computed: "<<to_load.R[0]<<", "<<to_load.R[1]<<", "<<to_load.R[2]<<std::endl;
-                std::cout<<"ABC G computed: "<<to_load.G[0]<<", "<<to_load.G[1]<<", "<<to_load.G[2]<<std::endl;
-                std::cout<<"ABC B computed: "<<to_load.B[0]<<", "<<to_load.B[1]<<", "<<to_load.B[2]<<std::endl;
+//                std::cout<<"ABC R computed: "<<to_load.R[0]<<", "<<to_load.R[1]<<", "<<to_load.R[2]<<std::endl;
+//                std::cout<<"ABC G computed: "<<to_load.G[0]<<", "<<to_load.G[1]<<", "<<to_load.G[2]<<std::endl;
+//                std::cout<<"ABC B computed: "<<to_load.B[0]<<", "<<to_load.B[1]<<", "<<to_load.B[2]<<std::endl;
 
                 //Ajout dans le tableau des coefficients (abc) calculés pour le triangle courant à charger au gpu plus tard.
                 lin_coeff[coeff_index] = to_load;
