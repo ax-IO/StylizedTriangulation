@@ -67,7 +67,9 @@ private:
   QAction *renderModeConstantAct;
   QAction *renderModeGradientAct;
 
-  QAction *showResolutionWindowAct;
+  QAction *showInitializeRegularGridWindowAct;
+  QAction *showInitializeSplitGridWindowAct;
+
 
   QAction *optimizationPassAct;
   QAction *optimizationSplitPassAct;
@@ -86,8 +88,9 @@ private slots:
   void fitToWindow();
   void about();
 
-  void showResolutionWindow();
+  void initializeRegularGridWindow();
   void callChangeResolution();
+  void initializeSplitGridWindow();
 
   void callRenderModeConstant();
   void callRenderModeGradient();

@@ -56,7 +56,7 @@ private:
   int m_width;
   int m_height;
 
-  size_t m_gridResolution;
+  size_t m_gridResolution = 2;
   int m_renderMode;
 
   Renderer *m_renderer;

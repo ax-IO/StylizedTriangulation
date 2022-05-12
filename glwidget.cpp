@@ -58,7 +58,6 @@ void GLWidget::initializeGL() {
 
   QImage img(fp);
   m_renderMode = COLOR_CONSTANT;
-  m_gridResolution = 2;
   m_width = img.width();
   m_height = img.height();
 
