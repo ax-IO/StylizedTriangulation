@@ -12,6 +12,7 @@ CONFIG += c++20
 include($$PWD/lib.pri)
 
 SOURCES += \
+    generategrid.cpp \
     main.cpp \
     glwidget.cpp\
     mainwindow.cpp \
@@ -20,6 +21,10 @@ SOURCES += \
     triangulationoptimizer.cpp
 
 HEADERS += \
+    common.h\
+    image_ppm.h\
+    delaunator.hpp\
+    generategrid.h \
     mainwindow.h \
     glwidget.h\
     renderer.h \

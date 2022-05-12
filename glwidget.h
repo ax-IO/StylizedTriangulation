@@ -31,7 +31,7 @@ public:
   ~GLWidget();
 
   int getGridResolution();
-  void changeGridResolution(int resolution);
+  void changeRegularGridResolution(int resolution);
 
   void renderModeConstant();
   void renderModeGradient();

@@ -18,7 +18,13 @@ int GLWidget::getGridResolution()
     return m_gridResolution;
 }
 
-void GLWidget::changeGridResolution(int resolution)
+void GLWidget::changeRegularGridResolution(int resolution)
+{
+    qDebug() << "New grid resolution :"<<resolution<<"--> ("<<resolution+ 2<< ","<<resolution +2<<")";
+    m_gridResolution = resolution;
+    m_tri = Triangulation{m_gridResolution};
+}
+void GLWidget::changeRegularGridResolution(int resolution)
 {
     qDebug() << "New grid resolution :"<<resolution<<"--> ("<<resolution+ 2<< ","<<resolution +2<<")";
     m_gridResolution = resolution;

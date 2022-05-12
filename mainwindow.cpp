@@ -381,7 +381,7 @@ void MainWindow::callChangeResolution()
 {
     int resolution = resolutionSpinBox->value();
 //    qDebug()<<"Change Resolution"<< resolution;
-    openGL->changeGridResolution(resolution);
+    openGL->changeRegularGridResolution(resolution);
     openGL->update();
 }
 
