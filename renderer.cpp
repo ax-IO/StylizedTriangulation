@@ -236,13 +236,22 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 //Décomposition de la matrice A en L^t*L
 //                gsl_linalg_cholesky_decomp(A_matrix);
 //eigen
-                Eigen::SimplicialLLT<Eigen::SparseMatrix<float>, Eigen::Upper> solver;
-//                Eigen::SimplicialCholesky<Eigen::SparseMatrix<unsigned>> solver;
+//                Eigen::SimplicialLLT<Eigen::SparseMatrix<float>, Eigen::Upper> solver;
+                Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>, Eigen::Upper> solver;
+//                Eigen::SimplicialCholesky<Eigen::SparseMatrix<float>> solver;
 
                 solver.compute(A_mat);
                 if(solver.info() != Eigen::Success)
                 {
                     std::cout<<"A -> LLT Decomposition failed."<<std::endl;
+                    for(int i = 0; i < 3; i ++)
+                                   {
+                                       for(int j = 0; j < 3; j ++)
+                                       {
+                                           std::cout<<A_mat.coeffRef(i,j)<<" ";
+                                       }
+                                       std::cout<<std::endl;
+                                   }
                 }
 
 
@@ -325,7 +334,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 
             //Charger les coefficients a, b et c calculés dans le GPU pour la 2nde passe
             gl_fct->glBindBuffer(GL_SHADER_STORAGE_BUFFER, storage_buffer);
-            gl_fct->glBufferData(GL_SHADER_STORAGE_BUFFER, tri.triangles().size() * sizeof(Linear_coeff), lin_coeff.data(), GL_DYNAMIC_COPY);
+            gl_fct->glBufferData(GL_SHADER_STORAGE_BUFFER, tri.triangles().size() * sizeof(Computed_coeff), lin_coeff.data(), GL_DYNAMIC_COPY);
             gl_fct->glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, storage_buffer);
 
 

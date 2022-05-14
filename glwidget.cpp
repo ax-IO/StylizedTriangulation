@@ -24,6 +24,15 @@ void GLWidget::changeRegularGridResolution(int resolution)
     m_gridResolution = resolution;
     m_tri = Triangulation{m_gridResolution};
 }
+
+void GLWidget::updateGradientGrid(QString filename, int seuil, int maxPoints, float pointRate)
+{
+    qDebug() << "Update Gradient Grid : filename = "<<filename<< " seuil = "<<seuil<<" maxPoints = "<<maxPoints<<" pointRate = "<<pointRate<<Qt::endl;
+    GenerateGrid *splitGrid = new GenerateGrid(m_width, m_height);
+    splitGrid->computeTriangulationGradientMap(filename, seuil, maxPoints, pointRate);
+    m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
+}
+
 void GLWidget::updateSplitGrid(QString filename, double maxVariance,int maxDist)
 {
     qDebug() << "Update Split Grid : filename = "<<filename<<", maxVariance = "<<maxVariance<<", maxDist = "<<maxDist;
@@ -31,6 +40,7 @@ void GLWidget::updateSplitGrid(QString filename, double maxVariance,int maxDist)
     splitGrid->computeTriangulationSplitAndMerge(filename,  maxVariance, maxDist);
     m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
 }
+
 
 void GLWidget::renderModeConstant()
 {

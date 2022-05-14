@@ -33,6 +33,7 @@ public:
 
   int getGridResolution();
   void changeRegularGridResolution(int resolution);
+  void updateGradientGrid(QString filename, int seuil, int maxPoints, float pointRate);
   void updateSplitGrid(QString filename, double maxVariance,int maxDist);
 
   void renderModeConstant();
@@ -58,7 +59,7 @@ private:
   int m_width;
   int m_height;
 
-  size_t m_gridResolution = 2;
+  size_t m_gridResolution = 8;
 
 
 

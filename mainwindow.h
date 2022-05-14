@@ -37,9 +37,17 @@ private:
   int statusbar_height = 27;
 
 
-  QSpinBox *resolutionSpinBox;
+
   QSpinBox *splitMaxVarianceSpinBox;
   QSpinBox *splitMaxDistanceSpinBox;
+
+  QSpinBox *resolutionSpinBox;
+  QSpinBox *gradientSeuilSpinBox;
+  QSpinBox *gradientMaxPointsSpinBox;
+  QDoubleSpinBox *gradientPointRateSpinBox;
+  QSpinBox *SobelSeuilSpinBox;
+  QSpinBox *SobelMaxPointsSpinBox;
+  QDoubleSpinBox *SobelPointRateSpinBox;
 
   QSpinBox *optimizationSpeedSpinBox;
 
@@ -73,7 +81,8 @@ private:
 
   QAction *showInitializeRegularGridWindowAct;
   QAction *showInitializeSplitGridWindowAct;
-
+  QAction *showInitializeGradientGridWindowAct;
+  QAction *showInitializeSobelGridWindowAct;
 
   QAction *optimizationPassAct;
   QAction *optimizationSplitPassAct;
@@ -92,16 +101,21 @@ private slots:
   void fitToWindow();
   void about();
 
+
   void initializeRegularGridWindow();
+  void initializeSplitGridWindow();
+  void initializeGradientGridWindow();
+  void initializeSobelGridWindow();
+
   void callChangeResolution();
   void callUpdateSplitGrid();
-
-  void initializeSplitGridWindow();
+  void callUpdateGradientGrid();
+  void callUpdateSobelGrid();
 
   void callRenderModeConstant();
   void callRenderModeGradient();
 
-  void callOptimizationlPass();
+  void callOptimizationPass();
   void callOptimizationNormalPass();
   void callOptimizationSplitPass();
   void callOptimizationContinuous();

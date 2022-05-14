@@ -7,6 +7,173 @@ GenerateGrid::GenerateGrid(int width, int height)
 }
 
 //------------------------------------------------------------------------------------------
+QDebug operator<< (QDebug d, const Vec2 &vec2) {
+    d << " ("<<vec2.x<<", "<<vec2.y<<") ";
+    return d;
+}
+QDebug operator<< (QDebug d, const Triangle &triangle) {
+    d << " "<<triangle.a<<"-"<<triangle.b<<"-"<<triangle.c <<" ";
+    return d;
+}
+
+// Function to print the
+// index of an element
+int getVertexIndex(std::vector<Vec2> v, Vec2 vertex)
+{
+    auto it = find(v.begin(), v.end(), vertex);
+
+    // If element was found
+    if (it != v.end())
+    {
+        return it - v.begin() ;
+    }
+    else {
+        // If the element is not present in the vector
+        return -1;
+    }
+}
+
+// echantillonageContour retrieves the triangle points after the Sobel threshold has been applied.
+void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, int seuil, int maxPoints, float pointRate){
+    // PointRate defines the default point rate.
+    // Changing this value will modify the triangles sizes.
+    int sum, total;
+    int x, y, sx, sy   ;
+    int row, col, step ;
+    std::vector<Vec2> points;
+
+
+    for (y = 0; y < m_height; y++) {
+        for (x = 0; x < m_width; x++) {
+            sum = 0;
+            total =0;
+
+            for (row = -1; row <= 1; row++) {
+                sy = y + row;
+                step = sy * m_width;
+
+                if (sy >= 0 && sy < m_height) {
+                    for (col = -1; col <= 1; col++) {
+                        sx = x + col;
+                        if (sx >= 0 && sx < m_width) {
+                            // sum += int(img.Pix[(sx+step)*4]);
+                            sum += (int)edgeMap[(sx+step)*4];
+                            total++;
+                        }
+                    }
+                }
+            }
+            if (total > 0) {
+                sum /= total;
+            }
+            if (sum > seuil) {
+                points.push_back({(float)x, (float)y});
+            }
+        }
+    }
+
+    int ilen = points.size();
+    int tlen = ilen;
+    int limit = (int)((float)ilen * pointRate);
+
+    if (limit > maxPoints) {
+        limit = maxPoints;
+    }
+
+
+    for (int i = 0; i < limit && i < ilen; i++) {
+        // j = int(float64(tlen) * rand.Float64())
+        //random float number between 0 and 1
+        float rand_number = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+        int j = (int)((float)(tlen) * rand_number);
+
+    //            m_vertices.push_back(points[j]);
+        Vec2 point={points[j].x/(float)m_height, points[j].y/(float)m_width};
+
+
+        m_vertices.push_back(point);
+
+        qDebug()<<"point ="<<point<< Qt::endl;
+        // Remove points
+        // points = append(points[:j], points[j+1:]...)
+        std::erase(points, points[j]);
+        tlen--;
+    }
+    // Ajout des 4 coins
+    if (getVertexIndex(m_vertices, {0.0f, 0.0f}) == -1){
+        m_vertices.push_back({0.0f, 0.0f});
+    }
+    if (getVertexIndex(m_vertices, {1.0f, 0.0f}) == -1){
+        m_vertices.push_back({1.0f, 0.0f});
+    }
+    if (getVertexIndex(m_vertices, {0.0f, 1.0f}) == -1){
+        m_vertices.push_back({0.0f, 1.0f});
+    }
+    if (getVertexIndex(m_vertices, {1.0f, 1.0f}) == -1){
+        m_vertices.push_back({1.0f, 1.0f});
+    }
+}
+//------------------------------------------------------------------------------------------
+void GenerateGrid::computeTriangulationGradientMap(QString filename, int seuil, int maxPoints, float pointRate){
+    // Génération carte de Gradient
+    std::string sringFilename = filename.toStdString();
+    auto [img, nH, nW] = charger<OCTET>(sringFilename);
+    std::vector<unsigned char> copy = img;
+
+    float h, v;
+    unsigned int G;
+    for (int i = 0; i < nH; i++)
+    {
+        for (int j = 0; j < nW; j++)
+        {
+            if (i == nH - 1)
+                h = 0;
+            if (j == nW - 1)
+                v = 0;
+            if (i < nH - 1 && j < nW - 1)
+            {
+                h = (float)img[i * nW + (j + 1)] - (float)img[i * nW + j];
+                // h = (float)img(i, j + 1) - (float)img(i, j);
+                v = (float)img[(i + 1) * nW + j] - (float)img[i * nW + j];
+                // v = (float)img(i + 1, j) - (float)img(i, j);
+
+                G = (unsigned int)std::min(255.0f, std::sqrt(h * h + v * v));
+                copy[i * nW + j] = G;
+            }
+        }
+    }
+    sauvegarder("gradient.pgm", copy, nH, nW);
+    //----------------------------------------
+    //Récupérer vertices
+    qDebug()<<"test1"<< Qt::endl;
+    echantillonageContour(copy, seuil, maxPoints, pointRate);
+
+    // qDebug()<<"m_vertices.size() ="<<m_vertices.size()<< Qt::endl;
+
+    //----------------------------------------
+    //Delaunay Triangulation
+    std::vector<double> coords = vectorOfVec2TovectorOfDouble(m_vertices);
+    Delaunator d(coords);
+
+    for(std::size_t i = 0; i < d.triangles.size(); i+=3) {
+        Vec2 a = {(float)d.coords[2 * d.triangles[i]], (float)d.coords[2 * d.triangles[i] + 1]};
+        Vec2 b = {(float)d.coords[2 * d.triangles[i + 1]], (float)d.coords[2 * d.triangles[i + 1] + 1]};
+        Vec2 c = {(float)d.coords[2 * d.triangles[i + 2]], (float)d.coords[2 * d.triangles[i + 2] + 1]};
+        int a_index = getVertexIndex(m_vertices, a);
+        int b_index= getVertexIndex(m_vertices, b);
+        int c_index= getVertexIndex(m_vertices, c);
+        if (a_index == -1 || b_index== -1 || c_index== -1 )
+        {
+            qDebug()<< a_index<< b_index<<c_index << Qt::endl;
+            exit(3);
+        }
+        else
+        {
+            m_triangles.push_back({(unsigned int)a_index, (unsigned int)b_index, (unsigned int)c_index});
+        }
+    }
+}
+//------------------------------------------------------------------------------------------
 struct Region
 {
     int top;
@@ -188,34 +355,10 @@ std::tuple<float, size_t, size_t> findBestDist(const Rag& rag, const std::vector
 
     return std::tie(best_dist, best_from, best_to);
 }
-//------------------------------------------------------------------------------------------
-QDebug operator<< (QDebug d, const Vec2 &vec2) {
-    d << " ("<<vec2.x<<", "<<vec2.y<<") ";
-    return d;
-}
-QDebug operator<< (QDebug d, const Triangle &triangle) {
-    d << " "<<triangle.a<<"-"<<triangle.b<<"-"<<triangle.c <<" ";
-    return d;
-}
-
-// Function to print the
-// index of an element
-int getVertexIndex(std::vector<Vec2> v, Vec2 vertex)
-{
-    auto it = find(v.begin(), v.end(), vertex);
-
-    // If element was found
-    if (it != v.end())
-    {
-        return it - v.begin() ;
-    }
-    else {
-        // If the element is not present in the vector
-        return -1;
-    }
-}
 void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double maxVariance,int maxDist)
 {
+        //----------------------------------------
+        //Split and Merge
         std::string sringFilename = filename.toStdString();
         auto [img, h, w] = charger<OCTET>(sringFilename);
 
@@ -292,6 +435,8 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
 
         sauvegarder("split.pgm", copy, h, w);
 
+        //----------------------------------------
+        //Récupérer vertices
         unsigned int k = 0;
         int a_index, b_index, c_index, d_index;
         Vec2 A, B, C, D;
@@ -340,17 +485,14 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
 
             t1 = {(unsigned int)a_index, (unsigned int)c_index, (unsigned int)d_index};
             t2 = {(unsigned int)a_index, (unsigned int)d_index, (unsigned int)b_index};
-//            m_triangles.push_back(t1);
-//            m_triangles.push_back(t2);
 //            qDebug()<<A<<B<<C<<D;
 //            qDebug()<<t1 <<t2<<Qt::endl;
         }
-        qDebug()<<k<< Qt::endl;;
 
-//        std::vector<double> coords = {-1, 1, 1, 1, 1, -1, -1, -1};
+        //----------------------------------------
+        //Delaunay Triangulation
         std::vector<double> coords = vectorOfVec2TovectorOfDouble(m_vertices);
 
-        //Delaunay Triangulation
         Delaunator d(coords);
 
         for(std::size_t i = 0; i < d.triangles.size(); i+=3) {
@@ -379,23 +521,9 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
                 m_triangles.push_back({(unsigned int)a_index, (unsigned int)b_index, (unsigned int)c_index});
             }
         }
-//        m_vertices.push_back({0.0f, 1.0f});
-//        m_vertices.push_back({1.0f, 1.0f});
-//        m_vertices.push_back({0.0f, 0.0f});
-//        m_vertices.push_back({1.0f, 0.0f});
-
-//        m_triangles.push_back({0, 2, 3});
-//        m_triangles.push_back({0, 3, 1});
-
-//        m_vertices.push_back({0.1f, 0.1f});
-//        m_vertices.push_back({0.1f, 0.9f});
-//        m_vertices.push_back({0.2f, 0.1f});
-//        m_vertices.push_back({0.2f, 0.9f});
-
-//        m_triangles.push_back({4, 6, 7});
-//        m_triangles.push_back({4, 7, 5});
-
 }
+
+//------------------------------------------------------------------------------------------
 std::vector<double> GenerateGrid::vectorOfVec2TovectorOfDouble(std::vector<Vec2> vectorOfVec2)
 {
     std::vector<double> vectorOfDouble;

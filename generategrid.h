@@ -14,6 +14,11 @@ public:
     GenerateGrid(int width, int height);
     void computeTriangulationSplitAndMerge(QString filename, double maxVariance,int maxDist);
 
+    void echantillonageContour(std::vector<unsigned char>& edgeMap, int seuil, int maxPoints, float pointRate);
+    void computeTriangulationGradientMap(QString filename, int seuil, int maxPoints, float pointRate);
+
+
+
     std::vector<double> vectorOfVec2TovectorOfDouble(std::vector<Vec2>);
     std::vector<Vec2> getVertices();
     std::vector<Triangle> getTriangles();

@@ -170,10 +170,19 @@ menuBar()->setFixedHeight(filebar_height);
   showInitializeRegularGridWindowAct->setShortcut(tr("Ctrl+r"));
   showInitializeRegularGridWindowAct->setEnabled(false);
 
+  gridMenu->addSeparator();
+
+
   showInitializeSplitGridWindowAct= gridMenu->addAction(tr("Générer un grille par Split and Merge"), this, &MainWindow::initializeSplitGridWindow);
   showInitializeSplitGridWindowAct->setShortcut(tr("Ctrl+t"));
   showInitializeSplitGridWindowAct->setEnabled(false);
 
+  gridMenu->addSeparator();
+
+
+  showInitializeGradientGridWindowAct= gridMenu->addAction(tr("Générer un grille par Carte de gradient"), this, &MainWindow::initializeGradientGridWindow);
+  showInitializeGradientGridWindowAct->setShortcut(tr("Ctrl+y"));
+  showInitializeGradientGridWindowAct->setEnabled(false);
   //------------------------------------------------------------------------------------------
   QMenu *optimisationMenu = menuBar()->addMenu(tr("&Optimisation"));
 
@@ -207,8 +216,11 @@ void MainWindow::updateActions() {
 
   renderModeConstantAct->setEnabled(!image.isNull());
   renderModeGradientAct->setEnabled(!image.isNull());
+
   showInitializeRegularGridWindowAct->setEnabled(!image.isNull());
+  showInitializeGradientGridWindowAct->setEnabled(!image.isNull());
   showInitializeSplitGridWindowAct->setEnabled(!image.isNull());
+
   optimizationPassAct->setEnabled(!image.isNull());
   optimizationSplitPassAct->setEnabled(!image.isNull());
   optimizationContinuousAct->setEnabled(!image.isNull());
@@ -335,6 +347,7 @@ void MainWindow::about() {
          "shows how to use QPainter to print an image.</p>"));
 }
 
+//------------------------------------------------------------------------------------------
 void MainWindow::initializeRegularGridWindow()
 {
     QWidget *resolutionWindow = new QWidget;
@@ -404,7 +417,62 @@ void MainWindow::initializeSplitGridWindow()
     layout->addWidget(applyResolutionButton);
     resolutionWindow->show();
 }
+void MainWindow::initializeGradientGridWindow()
+{
+    QWidget *resolutionWindow = new QWidget;
 
+
+    QLabel *gradientintegerLabel = new QLabel(tr("Génération d'une grille initiale par carte de gradient"));
+
+    QLabel *GradientSeuilLabel = new QLabel(tr("Seuil Points: "));
+    gradientSeuilSpinBox = new QSpinBox();
+    gradientSeuilSpinBox->setRange(1, 10000);
+    gradientSeuilSpinBox->setSingleStep(1);
+    gradientSeuilSpinBox->setValue(2);
+    connect(gradientSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
+    QHBoxLayout *hbox = new QHBoxLayout;
+    hbox->addWidget(GradientSeuilLabel);
+    hbox->addWidget(gradientSeuilSpinBox);
+
+    QLabel *SplitMaxPointsLabel = new QLabel(tr("Max Points : "));
+    gradientMaxPointsSpinBox = new QSpinBox();
+    gradientMaxPointsSpinBox->setRange(5, 10000);
+    gradientMaxPointsSpinBox->setSingleStep(1);
+    gradientMaxPointsSpinBox->setValue(300);
+    connect(gradientMaxPointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
+    QHBoxLayout *hbox2 = new QHBoxLayout;
+    hbox2->addWidget(SplitMaxPointsLabel);
+    hbox2->addWidget(gradientMaxPointsSpinBox);
+
+    QLabel *GradientPointRateLabel = new QLabel(tr("Taux de Points: "));
+    gradientPointRateSpinBox = new QDoubleSpinBox();
+    gradientPointRateSpinBox->setRange(0, 1);
+    gradientPointRateSpinBox->setSingleStep(0.01);
+    gradientPointRateSpinBox->setValue(0.88);
+    connect(gradientPointRateSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
+    QHBoxLayout *hbox3 = new QHBoxLayout;
+    hbox3->addWidget(GradientPointRateLabel);
+    hbox3->addWidget(gradientPointRateSpinBox);
+
+
+    QPushButton *applyResolutionButton = new QPushButton("Appliquer");
+    connect(applyResolutionButton, &QPushButton::released, this, &MainWindow::callUpdateGradientGrid);
+
+    QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
+
+    layout->addWidget(gradientintegerLabel);
+    layout->addLayout(hbox);
+    layout->addLayout(hbox2);
+    layout->addLayout(hbox3);
+    layout->addWidget(applyResolutionButton);
+    resolutionWindow->show();
+}
+void MainWindow::initializeSobelGridWindow()
+{
+
+}
+
+//------------------------------------------------------------------------------------------
 void MainWindow::callChangeResolution()
 {
     int resolution = resolutionSpinBox->value();
@@ -416,6 +484,16 @@ void MainWindow::callUpdateSplitGrid()
 {
     openGL->updateSplitGrid(pgm_filename, splitMaxVarianceSpinBox->value(), splitMaxDistanceSpinBox->value());
     openGL->update();
+}
+void MainWindow::callUpdateGradientGrid()
+{
+    openGL->updateGradientGrid(pgm_filename, gradientSeuilSpinBox->value(), gradientMaxPointsSpinBox->value(), gradientPointRateSpinBox->value());
+    openGL->update();
+}
+void MainWindow::callUpdateSobelGrid()
+{
+//    openGL->updateGradientGrid(pgm_filename, gradientSeuilSpinBox->value(), gradientMaxPointsSpinBox->value(), gradientPointRateSpinBox->value());
+//    openGL->update();
 }
 
 void MainWindow::callRenderModeConstant()
@@ -472,7 +550,7 @@ void MainWindow::callOptimizationContinuous()
     hbox2->addWidget(optimizationSpeedSpinBox);
 
     optimisationTimer = new QTimer(this);
-    connect(optimisationTimer, &QTimer::timeout, this, &MainWindow::callOptimizationlPass);
+    connect(optimisationTimer, &QTimer::timeout, this, &MainWindow::callOptimizationPass);
     QPushButton *buttonPause = new  QPushButton(tr("Pause"));
     connect(buttonPause, &QPushButton::released, this, &MainWindow::callOptimizationContinuousPause);
     QPushButton *buttonPlay = new  QPushButton(tr("Play"));
@@ -515,7 +593,7 @@ void MainWindow::callOptimizationContinuousPlay()
 
 }
 
-void MainWindow::callOptimizationlPass()
+void MainWindow::callOptimizationPass()
 {
     if(optimisationType == NORMAL)
     {
