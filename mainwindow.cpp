@@ -164,30 +164,32 @@ menuBar()->setFixedHeight(filebar_height);
   renderModeGradientAct->setShortcut(tr("Ctrl+é"));
   renderModeGradientAct->setEnabled(false);
 
-  renderMenu->addSeparator();
-  showInitializeRegularGridWindowAct= renderMenu->addAction(tr("Générer un grille régulière"), this, &MainWindow::initializeRegularGridWindow);
+  //------------------------------------------------------------------------------------------
+  QMenu *gridMenu = menuBar()->addMenu(tr("&Génération Grille"));
+  showInitializeRegularGridWindowAct= gridMenu->addAction(tr("Générer un grille régulière"), this, &MainWindow::initializeRegularGridWindow);
   showInitializeRegularGridWindowAct->setShortcut(tr("Ctrl+r"));
   showInitializeRegularGridWindowAct->setEnabled(false);
 
-  showInitializeSplitGridWindowAct= renderMenu->addAction(tr("Générer un grille par Split and Merge"), this, &MainWindow::initializeSplitGridWindow);
+  showInitializeSplitGridWindowAct= gridMenu->addAction(tr("Générer un grille par Split and Merge"), this, &MainWindow::initializeSplitGridWindow);
   showInitializeSplitGridWindowAct->setShortcut(tr("Ctrl+t"));
   showInitializeSplitGridWindowAct->setEnabled(false);
 
-  renderMenu->addSeparator();
+  //------------------------------------------------------------------------------------------
+  QMenu *optimisationMenu = menuBar()->addMenu(tr("&Optimisation"));
 
-  optimizationPassAct = renderMenu->addAction(tr("Passe d'optimisation"), this, &MainWindow::callOptimizationNormalPass);
-  optimizationPassAct->setShortcut(tr("o"));
-  optimizationPassAct->setEnabled(false);
-
-  optimizationSplitPassAct = renderMenu->addAction(tr("Passe d'optimisation Split"), this, &MainWindow::callOptimizationSplitPass);
-  optimizationSplitPassAct->setShortcut(tr("s"));
-  optimizationSplitPassAct->setEnabled(false);
-
-  optimizationContinuousAct = renderMenu->addAction(tr("Optimisation en continu"), this, &MainWindow::callOptimizationContinuous);
+  optimizationContinuousAct = optimisationMenu->addAction(tr("Optimisation en continu"), this, &MainWindow::callOptimizationContinuous);
   optimizationContinuousAct->setShortcut(tr("Ctrl+c"));
   optimizationContinuousAct->setEnabled(false);
 
+  optimisationMenu->addSeparator();
 
+  optimizationPassAct = optimisationMenu->addAction(tr("Passe d'optimisation"), this, &MainWindow::callOptimizationNormalPass);
+  optimizationPassAct->setShortcut(tr("o"));
+  optimizationPassAct->setEnabled(false);
+
+  optimizationSplitPassAct = optimisationMenu->addAction(tr("Passe d'optimisation Split"), this, &MainWindow::callOptimizationSplitPass);
+  optimizationSplitPassAct->setShortcut(tr("s"));
+  optimizationSplitPassAct->setEnabled(false);
 
   //------------------------------------------------------------------------------------------
   QMenu *helpMenu = menuBar()->addMenu(tr("&Aide"));
@@ -380,7 +382,7 @@ void MainWindow::initializeSplitGridWindow()
     hbox->addWidget(SplitMaxVarianceLabel);
     hbox->addWidget(splitMaxVarianceSpinBox);
 
-    QLabel *SplitMaxDistanceLabel = new QLabel(tr("Variance Maximale : "));
+    QLabel *SplitMaxDistanceLabel = new QLabel(tr("Distance Maximale : "));
     splitMaxDistanceSpinBox = new QSpinBox();
     splitMaxDistanceSpinBox->setRange(1, 10000);
     splitMaxDistanceSpinBox->setSingleStep(1);
@@ -454,7 +456,7 @@ void MainWindow::callOptimizationContinuous()
     radioNormal->setChecked(true);
     connect(radioNormal, &QRadioButton::released, this, &MainWindow::callOptimizationTypeChangeToNormal);
     QRadioButton *radioSplit = new QRadioButton(tr("Optimisation split"));
-    connect(radioNormal, &QRadioButton::released, this, &MainWindow::callOptimizationTypeChangeToSplit);
+    connect(radioSplit, &QRadioButton::released, this, &MainWindow::callOptimizationTypeChangeToSplit);
     QHBoxLayout *hbox = new QHBoxLayout;
     hbox->addWidget(radioNormal);
     hbox->addWidget(radioSplit);
@@ -490,10 +492,12 @@ void MainWindow::callOptimizationContinuous()
 
 void MainWindow::callOptimizationTypeChangeToNormal()
 {
+    qDebug()<<"Change to normal"<< Qt::endl;
     optimisationType = NORMAL;
 }
 void MainWindow::callOptimizationTypeChangeToSplit()
 {
+    qDebug()<<"Change to split"<< Qt::endl;
     optimisationType = SPLIT;
 }
 void MainWindow::callOptimizationContinuousPause()

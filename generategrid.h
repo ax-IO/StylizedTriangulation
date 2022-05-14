@@ -14,6 +14,7 @@ public:
     GenerateGrid(int width, int height);
     void computeTriangulationSplitAndMerge(QString filename, double maxVariance,int maxDist);
 
+    std::vector<double> vectorOfVec2TovectorOfDouble(std::vector<Vec2>);
     std::vector<Vec2> getVertices();
     std::vector<Triangle> getTriangles();
 private:

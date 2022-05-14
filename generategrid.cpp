@@ -340,13 +340,45 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
 
             t1 = {(unsigned int)a_index, (unsigned int)c_index, (unsigned int)d_index};
             t2 = {(unsigned int)a_index, (unsigned int)d_index, (unsigned int)b_index};
-            m_triangles.push_back(t1);
-            m_triangles.push_back(t2);
+//            m_triangles.push_back(t1);
+//            m_triangles.push_back(t2);
 //            qDebug()<<A<<B<<C<<D;
 //            qDebug()<<t1 <<t2<<Qt::endl;
         }
         qDebug()<<k<< Qt::endl;;
 
+//        std::vector<double> coords = {-1, 1, 1, 1, 1, -1, -1, -1};
+        std::vector<double> coords = vectorOfVec2TovectorOfDouble(m_vertices);
+
+        //Delaunay Triangulation
+        Delaunator d(coords);
+
+        for(std::size_t i = 0; i < d.triangles.size(); i+=3) {
+//            printf(
+//                "Triangle points: [[%f, %f], [%f, %f], [%f, %f]]\n",
+//                d.coords[2 * d.triangles[i]],        //tx0
+//                d.coords[2 * d.triangles[i] + 1],    //ty0
+//                d.coords[2 * d.triangles[i + 1]],    //tx1
+//                d.coords[2 * d.triangles[i + 1] + 1],//ty1
+//                d.coords[2 * d.triangles[i + 2]],    //tx2
+//                d.coords[2 * d.triangles[i + 2] + 1] //ty2
+//            );
+            Vec2 a = {(float)d.coords[2 * d.triangles[i]], (float)d.coords[2 * d.triangles[i] + 1]};
+            Vec2 b = {(float)d.coords[2 * d.triangles[i + 1]], (float)d.coords[2 * d.triangles[i + 1] + 1]};
+            Vec2 c = {(float)d.coords[2 * d.triangles[i + 2]], (float)d.coords[2 * d.triangles[i + 2] + 1]};
+            int a_index = getVertexIndex(m_vertices, a);
+            int b_index= getVertexIndex(m_vertices, b);
+            int c_index= getVertexIndex(m_vertices, c);
+            if (a_index == -1 || b_index== -1 || c_index== -1 )
+            {
+                qDebug()<< a_index<< b_index<<c_index << Qt::endl;
+                exit(3);
+            }
+            else
+            {
+                m_triangles.push_back({(unsigned int)a_index, (unsigned int)b_index, (unsigned int)c_index});
+            }
+        }
 //        m_vertices.push_back({0.0f, 1.0f});
 //        m_vertices.push_back({1.0f, 1.0f});
 //        m_vertices.push_back({0.0f, 0.0f});
@@ -364,7 +396,18 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
 //        m_triangles.push_back({4, 7, 5});
 
 }
+std::vector<double> GenerateGrid::vectorOfVec2TovectorOfDouble(std::vector<Vec2> vectorOfVec2)
+{
+    std::vector<double> vectorOfDouble;
+    vectorOfDouble.reserve(2*vectorOfVec2.size());
 
+    for (size_t i =0; i< vectorOfVec2.size(); i++)
+    {
+        vectorOfDouble.push_back((double)vectorOfVec2[i].x);
+        vectorOfDouble.push_back((double)vectorOfVec2[i].y);
+    }
+    return vectorOfDouble;
+}
 std::vector<Vec2> GenerateGrid::getVertices()
 {
     return m_vertices;
