@@ -50,32 +50,6 @@ namespace
         GLuint count = 0;
     };
 
-    void addTrianglePerVertex(unsigned t, const Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
-    {
-        Triangle triangle = triangulation.triangles()[t];
-        triangles_per_vertex[triangle.a].emplace_back(t,0);
-        triangles_per_vertex[triangle.b].emplace_back(t,1);
-        triangles_per_vertex[triangle.c].emplace_back(t,2);
-    }
-
-    void removeTrianglePerVertex(unsigned t, const Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
-    {
-        auto f = [t](auto& item) { return item.first == t; };
-        Triangle triangle = triangulation.triangles()[t];
-        VertexIndice vertices[]{triangle.a, triangle.b, triangle.c};
-        for(VertexIndice v : vertices) triangles_per_vertex[v].erase(std::remove_if(begin(triangles_per_vertex[v]), end(triangles_per_vertex[v]), f), end(triangles_per_vertex[v]));
-    }
-
-    auto computeTrianglesPerVertex(const Triangulation& triangulation)
-    {
-        std::vector<std::vector<std::pair<unsigned,unsigned char>>> result(triangulation.size());
-        for(unsigned i = 0; i < triangulation.triangles().size(); ++i)
-        {
-            addTrianglePerVertex(i, triangulation, result);
-        }
-        return result;
-    }
-
     auto computeRegularisationGradients(const Triangulation& triangulation, const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex, float pixel_width, float pixel_height)
     {
         std::vector<Vec2> result(triangulation.size());
@@ -126,7 +100,7 @@ namespace
     
     void applyOptimization(Triangulation& triangulation, const std::vector<TriangulationOptimizer::ErrorData>& error_data, float step, float step_clamp_pixel, float regularisation, float pixel_width, float pixel_height)
     {
-        auto triangles_per_vertex = computeTrianglesPerVertex(triangulation);
+        const auto& triangles_per_vertex = triangulation.trianglesPerVertex();
 
         std::vector<Vec2> regularisation_gradients = computeRegularisationGradients(triangulation, triangles_per_vertex, pixel_width, pixel_height);
         std::vector<Vec2> gradients = computeGradients(triangulation, triangles_per_vertex, error_data, pixel_width, pixel_height);
@@ -157,7 +131,7 @@ namespace
         std::copy(begin(new_vertices), end(new_vertices), begin(triangulation));
     }
 
-    void checkForFlip(unsigned t, Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
+    void checkForFlip(unsigned t, Triangulation& triangulation, const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
     {
         Triangle tri = triangulation.triangles()[t];
         VertexIndice indices[]{tri.a, tri.b, tri.c};
@@ -181,11 +155,7 @@ namespace
                 }
                 if(has_edge && local_angle + angle(triangulation[v1], triangulation[opposite], triangulation[v2]) >= M_PI)
                 {
-                    removeTrianglePerVertex(t, triangulation, triangles_per_vertex);
-                    removeTrianglePerVertex(other_t, triangulation, triangles_per_vertex);
                     triangulation.flipCommonEdge(t, other_t);
-                    addTrianglePerVertex(t, triangulation, triangles_per_vertex);
-                    addTrianglePerVertex(other_t, triangulation, triangles_per_vertex);
                     return;
                 }
             }
@@ -344,7 +314,7 @@ void TriangulationOptimizer::optimizeSplit(Triangulation& triangulation, unsigne
     }
 
     //There can be new vertices and triangles, so recompute the map
-    auto triangles_per_vertex = computeTrianglesPerVertex(triangulation);
+    const auto& triangles_per_vertex = triangulation.trianglesPerVertex();
 
     for(unsigned t = 0; t < triangulation.triangles().size(); ++t)
     {

@@ -1,4 +1,5 @@
 #include "triangulation.h"
+#include <algorithm>
 
 Triangulation::Triangulation(std::size_t n)
     :_vertices((n+2)*(n+2)), _triangles((n+1)*(n+1)*2)
@@ -30,6 +31,7 @@ Triangulation::Triangulation(std::size_t n)
                                   i+1+j*LineSize};
         }
     }
+    computeTrianglesPerVertex();
 }
 
 Vec2 Triangulation::operator[](VertexIndice i) const
@@ -52,6 +54,11 @@ const std::vector<Triangle>& Triangulation::triangles() const
     return _triangles;
 }
 
+const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& Triangulation::trianglesPerVertex() const
+{
+    return _triangles_per_vertex;
+}
+
 VertexIndice Triangulation::size() const
 {
     return _vertices.size();
@@ -59,6 +66,8 @@ VertexIndice Triangulation::size() const
 
 void Triangulation::splitTriangle(unsigned triangle)
 {
+    removeTrianglePerVertex(triangle);
+
     unsigned next_tris = _triangles.size();
     _triangles.resize(next_tris + 2);
     Triangle& orig = _triangles[triangle];
@@ -67,6 +76,7 @@ void Triangulation::splitTriangle(unsigned triangle)
     unsigned new_vert = _vertices.size();
     _vertices.push_back({(_vertices[orig.a].x + _vertices[orig.b].x + _vertices[orig.c].x) / 3,
                 (_vertices[orig.a].y + _vertices[orig.b].y + _vertices[orig.c].y) / 3});
+    _triangles_per_vertex.emplace_back();
 
     first.a = orig.b;
     first.b = orig.c;
@@ -77,11 +87,18 @@ void Triangulation::splitTriangle(unsigned triangle)
     second.c = new_vert;
 
     orig.c = new_vert;
+
+    addTrianglePerVertex(triangle);
+    addTrianglePerVertex(next_tris);
+    addTrianglePerVertex(next_tris+1);
 }
 
 void Triangulation::flipCommonEdge(unsigned l_triangle, unsigned r_triangle)
 {
     if(l_triangle == r_triangle) return;
+
+    removeTrianglePerVertex(l_triangle);
+    removeTrianglePerVertex(r_triangle);
 
     VertexIndice* const lptrs[]{&_triangles[l_triangle].a, &_triangles[l_triangle].b, &_triangles[l_triangle].c};
     VertexIndice* const rptrs[]{&_triangles[r_triangle].a, &_triangles[r_triangle].b, &_triangles[r_triangle].c};
@@ -99,7 +116,35 @@ void Triangulation::flipCommonEdge(unsigned l_triangle, unsigned r_triangle)
         }
     }
     if(common_count != 2) return;
-
     *lptrs[l_edge_start] = *rptrs[(r_edge_start+2)%3];
     *rptrs[r_edge_start] = *lptrs[(l_edge_start+2)%3];
+
+    addTrianglePerVertex(l_triangle);
+    addTrianglePerVertex(r_triangle);
+}
+
+void Triangulation::addTrianglePerVertex(unsigned t)
+{
+    Triangle triangle = _triangles[t];
+    _triangles_per_vertex[triangle.a].emplace_back(t,0);
+    _triangles_per_vertex[triangle.b].emplace_back(t,1);
+    _triangles_per_vertex[triangle.c].emplace_back(t,2);
+}
+
+void Triangulation::removeTrianglePerVertex(unsigned t)
+{
+    auto f = [t](auto& item) { return item.first == t; };
+    Triangle triangle = _triangles[t];
+    VertexIndice vertices[]{triangle.a, triangle.b, triangle.c};
+    for(VertexIndice v : vertices) _triangles_per_vertex[v].erase(std::remove_if(begin(_triangles_per_vertex[v]), end(_triangles_per_vertex[v]), f), end(_triangles_per_vertex[v]));
+}
+
+void Triangulation::computeTrianglesPerVertex()
+{
+    _triangles_per_vertex.clear();
+    _triangles_per_vertex.resize(size());
+    for(unsigned i = 0; i < _triangles.size(); ++i)
+    {
+        addTrianglePerVertex(i);
+    }
 }

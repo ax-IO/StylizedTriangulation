@@ -24,6 +24,7 @@ public:
     Vec2& operator[](VertexIndice);
     const std::vector<Vec2>& vertices() const;
     const std::vector<Triangle>& triangles() const;
+    const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& trianglesPerVertex() const; //Format : for each vertex, a list of pair<triangleIndex,locInTriangle>
     VertexIndice size() const;
     void splitTriangle(unsigned triangle);
     void flipCommonEdge(unsigned l_triangle, unsigned r_triangle);
@@ -35,8 +36,12 @@ public:
     friend auto end(const Triangulation& t) { return t._vertices.end(); }
     friend auto cend(const Triangulation& t) { return end(t); }
 private:
+    void addTrianglePerVertex(unsigned);
+    void removeTrianglePerVertex(unsigned);
+    void computeTrianglesPerVertex();
     std::vector<Vec2> _vertices;
     std::vector<Triangle> _triangles;
+    std::vector<std::vector<std::pair<unsigned,unsigned char>>> _triangles_per_vertex;
 };
 
 #endif // TRIANGULATION_H
