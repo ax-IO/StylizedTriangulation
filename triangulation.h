@@ -10,9 +10,16 @@ struct Vec2
     float x,y;
 };
 
+float sqrDist(const Vec2&, const Vec2&);
+float sqrLen(const Vec2&);
+
 struct Triangle
 {
-    VertexIndice a,b,c;
+    union
+    {
+        struct { VertexIndice a,b,c; };
+        VertexIndice arr[3];
+    };
 };
 
 class Triangulation
@@ -28,6 +35,8 @@ public:
     VertexIndice size() const;
     void splitTriangle(unsigned triangle);
     void flipCommonEdge(unsigned l_triangle, unsigned r_triangle);
+    void deleteVertex(VertexIndice);
+    void deleteEdge(VertexIndice, VertexIndice);
 
     friend auto begin(Triangulation& t) { return t._vertices.begin(); }
     friend auto begin(const Triangulation& t) { return t._vertices.begin(); }

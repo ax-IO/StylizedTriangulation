@@ -24,16 +24,6 @@ namespace
         return al.x * ar.y - ar.x * al.y > 0;
     }
 
-    float sqrLen(Vec2 x)
-    {
-        return x.x * x.x + x.y * x.y;
-    }
-
-    float sqrDist(Vec2 a, Vec2 b)
-    {
-        return sqrLen({b.x-a.x, b.y-a.y});
-    }
-
     float angle(Vec2 l, Vec2 a, Vec2 r)
     {
         using std::sqrt, std::acos;

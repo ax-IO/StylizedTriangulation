@@ -1,5 +1,17 @@
 #include "triangulation.h"
 #include <algorithm>
+#include <iterator>
+#include <limits>
+
+float sqrLen(const Vec2& x)
+{
+    return x.x * x.x + x.y * x.y;
+}
+
+float sqrDist(const Vec2& a, const Vec2& b)
+{
+    return sqrLen({b.x-a.x, b.y-a.y});
+}
 
 Triangulation::Triangulation(std::size_t n)
     :_vertices((n+2)*(n+2)), _triangles((n+1)*(n+1)*2)
@@ -121,6 +133,70 @@ void Triangulation::flipCommonEdge(unsigned l_triangle, unsigned r_triangle)
 
     addTrianglePerVertex(l_triangle);
     addTrianglePerVertex(r_triangle);
+}
+
+
+void Triangulation::deleteVertex(VertexIndice to_del)
+{
+    VertexIndice closest;
+    float min_sqr_dist = std::numeric_limits<float>::infinity();
+    for(auto [t, pos] : _triangles_per_vertex[to_del])
+    {
+        for(int i = 0; i < 2; ++i)
+        {
+            VertexIndice other = _triangles[t].arr[(pos+i)%3];
+            float sqr_dist = sqrDist(_vertices[to_del], _vertices[other]);
+            if(sqr_dist < min_sqr_dist)
+            {
+                min_sqr_dist = sqr_dist;
+                closest = other;
+            }
+        }
+    }
+
+    deleteEdge(to_del, closest);
+}
+
+void Triangulation::deleteEdge(VertexIndice from, VertexIndice to)
+{
+    if(from > to) std::swap(from, to);
+
+    _vertices[from].x = (_vertices[from].x + _vertices[to].x) / 2;
+    _vertices[from].y = (_vertices[from].y + _vertices[to].y) / 2;
+
+    _vertices.erase(_vertices.begin() + to);
+    _triangles_per_vertex[from].insert(_triangles_per_vertex[from].end(), std::make_move_iterator(_triangles_per_vertex[to].begin()), std::make_move_iterator(_triangles_per_vertex[to].end()));
+    _triangles_per_vertex.erase(_triangles_per_vertex.begin() + to);
+
+    unsigned new_t_id = 0;
+    for(unsigned old_t_id = 0; old_t_id < _triangles.size(); ++old_t_id)
+    {
+        Triangle& triangle = _triangles[new_t_id];
+        if(old_t_id != new_t_id) triangle = std::move(_triangles[old_t_id]);
+        int edge_elems = 0;
+        for(VertexIndice& vi : triangle.arr)
+        {
+            if(vi == to) vi = from;
+            if(vi == from) ++edge_elems;
+            if(vi > to) --vi;
+        }
+        if(edge_elems >= 2)
+        {
+            removeTrianglePerVertex(new_t_id);
+            for(auto& list : _triangles_per_vertex)
+            {
+                for(auto& [t, pos] : list)
+                {
+                    if(t > new_t_id) --t;
+                }
+            }
+        }
+        else
+        {
+            ++new_t_id;
+        }
+    }
+    _triangles.erase(_triangles.begin() + new_t_id, _triangles.end());
 }
 
 void Triangulation::addTrianglePerVertex(unsigned t)
