@@ -15,6 +15,7 @@
 #include "triangulation.h"
 #include "triangulationoptimizer.h"
 #include "renderer.h"
+#include "generategrid.h"
 
 #include "math.h"
 #include <algorithm>
@@ -32,6 +33,7 @@ public:
 
   int getGridResolution();
   void changeRegularGridResolution(int resolution);
+  void updateSplitGrid(QString filename, double maxVariance,int maxDist);
 
   void renderModeConstant();
   void renderModeGradient();
@@ -57,6 +59,9 @@ private:
   int m_height;
 
   size_t m_gridResolution = 2;
+
+
+
   int m_renderMode;
 
   Renderer *m_renderer;

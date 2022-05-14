@@ -24,11 +24,12 @@ void GLWidget::changeRegularGridResolution(int resolution)
     m_gridResolution = resolution;
     m_tri = Triangulation{m_gridResolution};
 }
-void GLWidget::changeRegularGridResolution(int resolution)
+void GLWidget::updateSplitGrid(QString filename, double maxVariance,int maxDist)
 {
-    qDebug() << "New grid resolution :"<<resolution<<"--> ("<<resolution+ 2<< ","<<resolution +2<<")";
-    m_gridResolution = resolution;
-    m_tri = Triangulation{m_gridResolution};
+    qDebug() << "Update Split Grid : filename = "<<filename<<", maxVariance = "<<maxVariance<<", maxDist = "<<maxDist;
+    GenerateGrid *splitGrid = new GenerateGrid(m_width, m_height);
+    splitGrid->computeTriangulationSplitAndMerge(filename,  maxVariance, maxDist);
+    m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
 }
 
 void GLWidget::renderModeConstant()

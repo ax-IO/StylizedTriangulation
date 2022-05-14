@@ -676,3 +676,7 @@ DISTFILES += \
     lib/Eigen/src/plugins/MatrixCwiseBinaryOps.h:Zone.Identifier \
     lib/Eigen/src/plugins/MatrixCwiseUnaryOps.h:Zone.Identifier \
     lib/Eigen/src/plugins/ReshapedMethods.h:Zone.Identifier \
+#    lib/common.h \
+#    lib/delaunator.h \
+#    lib/image_ppm.h \
+

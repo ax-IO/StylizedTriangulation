@@ -38,6 +38,9 @@ private:
 
 
   QSpinBox *resolutionSpinBox;
+  QSpinBox *splitMaxVarianceSpinBox;
+  QSpinBox *splitMaxDistanceSpinBox;
+
   QSpinBox *optimizationSpeedSpinBox;
 
   int optimisationType = NORMAL;
@@ -48,6 +51,7 @@ private:
   QImage image;
   QImage image_to_save;
   QImage image_to_display;
+  QString pgm_filename;
 
   QScrollArea *scrollArea;
   double scaleFactor = 1;
@@ -90,6 +94,8 @@ private slots:
 
   void initializeRegularGridWindow();
   void callChangeResolution();
+  void callUpdateSplitGrid();
+
   void initializeSplitGridWindow();
 
   void callRenderModeConstant();

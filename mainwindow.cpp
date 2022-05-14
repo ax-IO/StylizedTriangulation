@@ -69,7 +69,7 @@ bool MainWindow::loadFile(const QString &fileName) {
 
 
 //    resize(image.width(), image.height());
-  resize(image.width(), image.height() + filebar_height);
+  resize(image.width(), image.height() + filebar_height + statusbar_height);
 //------------------------------------------------------------------------------------------
   openGL = new GLWidget(fileName, this);
 
@@ -95,7 +95,11 @@ bool MainWindow::loadFile(const QString &fileName) {
   setCentralWidget(openGL);
 
 
-initializeRegularGridWindow();
+//  initializeRegularGridWindow();
+    pgm_filename = QDir::toNativeSeparators(fileName).left( fileName.lastIndexOf( '.' ) ) +".pgm";
+//    qDebug() <<pgm_filepath <<Qt::endl;
+    newImage.save(pgm_filename, "pgm", -1);
+
 
 //------------------------------------------------------------------------------------------
   return true;
@@ -161,11 +165,11 @@ menuBar()->setFixedHeight(filebar_height);
   renderModeGradientAct->setEnabled(false);
 
   renderMenu->addSeparator();
-  showInitializeRegularGridWindowAct= renderMenu->addAction(tr("Changer la résolution"), this, &MainWindow::initializeRegularGridWindow);
+  showInitializeRegularGridWindowAct= renderMenu->addAction(tr("Générer un grille régulière"), this, &MainWindow::initializeRegularGridWindow);
   showInitializeRegularGridWindowAct->setShortcut(tr("Ctrl+r"));
   showInitializeRegularGridWindowAct->setEnabled(false);
 
-  showInitializeSplitGridWindowAct= renderMenu->addAction(tr("Changer la résolution"), this, &MainWindow::initializeSplitGridWindow);
+  showInitializeSplitGridWindowAct= renderMenu->addAction(tr("Générer un grille par Split and Merge"), this, &MainWindow::initializeSplitGridWindow);
   showInitializeSplitGridWindowAct->setShortcut(tr("Ctrl+t"));
   showInitializeSplitGridWindowAct->setEnabled(false);
 
@@ -336,19 +340,25 @@ void MainWindow::initializeRegularGridWindow()
     int min = 0;
     int max = 2000;
 
-    QLabel *resolutionintegerLabel = new QLabel(tr("Enter a value between ""%1 and %2:").arg(min).arg(max));
+    QLabel *resolutionintegerLabel = new QLabel(tr("Génération d'une grille initiale régulière"));
+
+    QLabel *resolutionLabel = new QLabel(tr("Résolution de la grille : "));
     resolutionSpinBox = new QSpinBox();
     resolutionSpinBox->setRange(min, max);
     resolutionSpinBox->setSingleStep(1);
     resolutionSpinBox->setValue(openGL->getGridResolution());
     connect(resolutionSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callChangeResolution);
+    QHBoxLayout *hbox = new QHBoxLayout;
+    hbox->addWidget(resolutionLabel);
+    hbox->addWidget(resolutionSpinBox);
+
     QPushButton *applyResolutionButton = new QPushButton("Appliquer");
     connect(applyResolutionButton, &QPushButton::released, this, &MainWindow::callChangeResolution);
 
     QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
 
     layout->addWidget(resolutionintegerLabel);
-    layout->addWidget(resolutionSpinBox);
+    layout->addLayout(hbox);
     layout->addWidget(applyResolutionButton);
     resolutionWindow->show();
 }
@@ -357,22 +367,38 @@ void MainWindow::initializeSplitGridWindow()
 {
     QWidget *resolutionWindow = new QWidget;
 
-    int min = 0;
-    int max = 2000;
 
-    QLabel *resolutionintegerLabel = new QLabel(tr("Enter a value between ""%1 and %2:").arg(min).arg(max));
-    resolutionSpinBox = new QSpinBox();
-    resolutionSpinBox->setRange(min, max);
-    resolutionSpinBox->setSingleStep(1);
-    resolutionSpinBox->setValue(openGL->getGridResolution());
-    connect(resolutionSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callChangeResolution);
+    QLabel *SplitLabel = new QLabel(tr("Génération d'une grille initiale par Split and Merge"));
+
+    QLabel *SplitMaxVarianceLabel = new QLabel(tr("Variance Maximale : "));
+    splitMaxVarianceSpinBox = new QSpinBox();
+    splitMaxVarianceSpinBox->setRange(1, 10000);
+    splitMaxVarianceSpinBox->setSingleStep(1);
+    splitMaxVarianceSpinBox->setValue(1);
+//    connect(splitMaxVarianceSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSplitGrid);
+    QHBoxLayout *hbox = new QHBoxLayout;
+    hbox->addWidget(SplitMaxVarianceLabel);
+    hbox->addWidget(splitMaxVarianceSpinBox);
+
+    QLabel *SplitMaxDistanceLabel = new QLabel(tr("Variance Maximale : "));
+    splitMaxDistanceSpinBox = new QSpinBox();
+    splitMaxDistanceSpinBox->setRange(1, 10000);
+    splitMaxDistanceSpinBox->setSingleStep(1);
+    splitMaxDistanceSpinBox->setValue(1);
+//    connect(splitMaxDistanceSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSplitGrid);
+    QHBoxLayout *hbox2 = new QHBoxLayout;
+    hbox2->addWidget(SplitMaxDistanceLabel);
+    hbox2->addWidget(splitMaxDistanceSpinBox);
+
+
     QPushButton *applyResolutionButton = new QPushButton("Appliquer");
-    connect(applyResolutionButton, &QPushButton::released, this, &MainWindow::callChangeResolution);
+    connect(applyResolutionButton, &QPushButton::released, this, &MainWindow::callUpdateSplitGrid);
 
     QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
 
-    layout->addWidget(resolutionintegerLabel);
-    layout->addWidget(resolutionSpinBox);
+    layout->addWidget(SplitLabel);
+    layout->addLayout(hbox);
+    layout->addLayout(hbox2);
     layout->addWidget(applyResolutionButton);
     resolutionWindow->show();
 }
@@ -382,6 +408,11 @@ void MainWindow::callChangeResolution()
     int resolution = resolutionSpinBox->value();
 //    qDebug()<<"Change Resolution"<< resolution;
     openGL->changeRegularGridResolution(resolution);
+    openGL->update();
+}
+void MainWindow::callUpdateSplitGrid()
+{
+    openGL->updateSplitGrid(pgm_filename, splitMaxVarianceSpinBox->value(), splitMaxDistanceSpinBox->value());
     openGL->update();
 }
 

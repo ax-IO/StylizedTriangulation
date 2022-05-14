@@ -1,5 +1,7 @@
 #include "triangulation.h"
 
+
+
 Triangulation::Triangulation(std::size_t n)
     :_vertices((n+2)*(n+2)), _triangles((n+1)*(n+1)*2)
 {
@@ -30,6 +32,11 @@ Triangulation::Triangulation(std::size_t n)
                                   i+1+j*LineSize};
         }
     }
+}
+
+Triangulation::Triangulation(std::vector<Vec2> vertices, std::vector<Triangle> triangles)
+    :_vertices(vertices), _triangles(triangles)
+{
 }
 
 Vec2 Triangulation::operator[](VertexIndice i) const

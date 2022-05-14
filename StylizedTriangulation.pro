@@ -12,7 +12,10 @@ CONFIG += c++20
 include($$PWD/lib.pri)
 
 SOURCES += \
+    common.cpp \
+    delaunator.cpp \
     generategrid.cpp \
+    image_ppm.cpp \
     main.cpp \
     glwidget.cpp\
     mainwindow.cpp \
