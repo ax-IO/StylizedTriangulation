@@ -26,31 +26,10 @@ struct Computed_coeff
 };
 
 
-// mapper les 6 coefficients accumulés dans le shader dans la partie inférieure de la matrice.
-//void map_coeff_to_matrix(uint comp[6], gsl_matrix* output)
-//{
-//    gsl_matrix_set_all(output, 0);
-//    gsl_matrix_set(output, 0, 0, comp[0]);
-//    gsl_matrix_set(output, 1, 0, comp[1]);
-//    gsl_matrix_set(output, 1, 1, comp[3]);
-//    gsl_matrix_set(output, 2, 0, comp[2]);
-//    gsl_matrix_set(output, 2, 1, comp[4]);
-//    gsl_matrix_set(output, 2, 2, comp[5]);
-
-//}
-
 // Matrice dont la partie supérieure seulement est remplie
 Eigen::SparseMatrix<float> matrix_from_coeff(uint comp[6])
 {
     Eigen::SparseMatrix<float> output(3, 3);
-//    output(0,0) = comp[0];
-//    output(0,1) = comp[1];
-//    output(0,2) = comp[2];
-
-//    output(1,1) = comp[3];
-//    output(1,2) = comp[4];
-
-//    output(2,2) = comp[5];
     std::vector<Eigen::Triplet<float>> entries;
     entries.reserve(6);
 
@@ -245,18 +224,6 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
                 }
 
 
-                //b pour chaque canal R, G et B
-//                gsl_vector* R_b = gsl_vector_alloc(3);
-//                gsl_vector* G_b = gsl_vector_alloc(3);
-//                gsl_vector* B_b = gsl_vector_alloc(3);
-
-//                for(int i = 0; i < 3; i ++)
-//                {
-//                    gsl_vector_set(R_b, i, tri_matrices.R_b_vec[i]);
-//                    gsl_vector_set(G_b, i, tri_matrices.G_b_vec[i]);
-//                    gsl_vector_set(B_b, i, tri_matrices.B_b_vec[i]);
-//                }
-
 //eigen
                 Eigen::Vector3<float> rb, gb, bb;
                 for(int i = 0; i < 3; i ++)
@@ -268,57 +235,31 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 
                 //solver Ax = b pour chaque canal (on réutilise la même décomposition de A)
                 Computed_coeff to_load;
-//                gsl_vector* abc = gsl_vector_alloc(3);
-
-
-//                gsl_linalg_cholesky_solve(A_matrix, R_b, abc);
-//                for(int i = 0; i < 3; i ++) to_load.R[i] = gsl_vector_get(abc, i);
-
-//                gsl_linalg_cholesky_solve(A_matrix, G_b, abc);
-//                for(int i = 0; i < 3; i ++) to_load.G[i] = gsl_vector_get(abc, i);
-
-//                gsl_linalg_cholesky_solve(A_matrix, B_b, abc);
-//                for(int i = 0; i < 3; i ++) to_load.B[i] = gsl_vector_get(abc, i);
-
-
                 Eigen::Vector3<float> abc;
                 abc = solver.solve(rb);
                 if(solver.info() != Eigen::Success)
                 {
-                    std::cout<<"SOLVER FOR Ax=b FAILED."<<std::endl;
+                    std::cout<<"SOLVER FOR Ax=b FAILED. (red)"<<std::endl;
                 }
-                for(int i = 0; i < 3; i ++){
-                    to_load.R[i] = abc(i);
-                    std::cout<<"ABC RB "<<abc(i)<<std::endl;
-                }
+                for(int i = 0; i < 3; i ++) to_load.R[i] = abc(i);
 
                 abc = solver.solve(gb);
                 if(solver.info() != Eigen::Success)
                 {
-                    std::cout<<"SOLVER FOR Ax=b FAILED."<<std::endl;
+                    std::cout<<"SOLVER FOR Ax=b FAILED. (green)"<<std::endl;
                 }
                 for(int i = 0; i < 3; i ++) to_load.G[i] = abc(i); /*std::cout<<"ABC GB "<<abc(i)<<std::endl;*/
 
                 abc = solver.solve(bb);
                 if(solver.info() != Eigen::Success)
                 {
-                    std::cout<<"SOLVER FOR Ax=b FAILED."<<std::endl;
+                    std::cout<<"SOLVER FOR Ax=b FAILED. (blue)"<<std::endl;
                 }
                 for(int i = 0; i < 3; i ++) to_load.B[i] = abc(i); /*std::cout<<"ABC BB "<<abc(i)<<std::endl;*/
-
-                std::cout<<"ABC R computed: "<<to_load.R[0]<<", "<<to_load.R[1]<<", "<<to_load.R[2]<<std::endl;
-                std::cout<<"ABC G computed: "<<to_load.G[0]<<", "<<to_load.G[1]<<", "<<to_load.G[2]<<std::endl;
-                std::cout<<"ABC B computed: "<<to_load.B[0]<<", "<<to_load.B[1]<<", "<<to_load.B[2]<<std::endl;
 
                 //Ajout dans le tableau des coefficients (abc) calculés pour le triangle courant à charger au gpu plus tard.
                 lin_coeff[coeff_index] = to_load;
                 coeff_index ++;
-
-                // libération des matrices et vecteurs utilisés avec gsl
-//                gsl_matrix_free(A_matrix);
-//                gsl_vector_free(R_b);
-//                gsl_vector_free(G_b);
-//                gsl_vector_free(B_b);
 
             }
 
