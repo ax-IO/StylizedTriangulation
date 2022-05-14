@@ -56,7 +56,6 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
                     for (col = -1; col <= 1; col++) {
                         sx = x + col;
                         if (sx >= 0 && sx < m_width) {
-                            // sum += int(img.Pix[(sx+step)*4]);
                             sum += (int)edgeMap[(sx+step)*4];
                             total++;
                         }
@@ -93,7 +92,7 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
 
         m_vertices.push_back(point);
 
-        qDebug()<<"point ="<<point<< Qt::endl;
+//        qDebug()<<"point ="<<point<< Qt::endl;
         // Remove points
         // points = append(points[:j], points[j+1:]...)
         std::erase(points, points[j]);
@@ -111,6 +110,29 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
     }
     if (getVertexIndex(m_vertices, {1.0f, 1.0f}) == -1){
         m_vertices.push_back({1.0f, 1.0f});
+    }
+}
+
+void GenerateGrid::delaunayTriangulation(){
+    std::vector<double> coords = vectorOfVec2TovectorOfDouble(m_vertices);
+    Delaunator d(coords);
+
+    for(std::size_t i = 0; i < d.triangles.size(); i+=3) {
+        Vec2 a = {(float)d.coords[2 * d.triangles[i]], (float)d.coords[2 * d.triangles[i] + 1]};
+        Vec2 b = {(float)d.coords[2 * d.triangles[i + 1]], (float)d.coords[2 * d.triangles[i + 1] + 1]};
+        Vec2 c = {(float)d.coords[2 * d.triangles[i + 2]], (float)d.coords[2 * d.triangles[i + 2] + 1]};
+        int a_index = getVertexIndex(m_vertices, a);
+        int b_index= getVertexIndex(m_vertices, b);
+        int c_index= getVertexIndex(m_vertices, c);
+        if (a_index == -1 || b_index== -1 || c_index== -1 )
+        {
+            qDebug()<< a_index<< b_index<<c_index << Qt::endl;
+            exit(3);
+        }
+        else
+        {
+            m_triangles.push_back({(unsigned int)a_index, (unsigned int)b_index, (unsigned int)c_index});
+        }
     }
 }
 //------------------------------------------------------------------------------------------
@@ -143,35 +165,114 @@ void GenerateGrid::computeTriangulationGradientMap(QString filename, int seuil, 
         }
     }
     sauvegarder("gradient.pgm", copy, nH, nW);
+
+    //Récupérer vertices
+    echantillonageContour(copy, seuil, maxPoints, pointRate);
+    // qDebug()<<"m_vertices.size() ="<<m_vertices.size()<< Qt::endl;
+
+    //Delaunay Triangulation
+    delaunayTriangulation();
+}
+
+void GenerateGrid::computeTriangulationSobelMap(QString filename, int seuilFiltre, int seuil, int maxPoints, float pointRate){
+    // Génération carte de Sobel
+    std::string sringFilename = filename.toStdString();
+    auto [img, nH, nW] = charger<OCTET>(sringFilename);
+//    std::vector<unsigned char> copy = img;
+    std::vector<unsigned char> copy(m_width*m_height);
+
+    int sobelKernelX [3][3] ={
+            {-1, 0, 1},
+            {-2, 0, 2},
+            {-1, 0, 1},
+        };
+
+    int sobelKernelY [3][3] ={
+            {-1, -2, -1},
+            {0, 0, 0},
+            {1, 2, 1},
+        };
+
+
+    int sumX, sumY;
+
+    // Get 3x3 window of pixels because image data given is just a 1D array of pixels
+    // 3 = len(sobelKernelX)
+    int maxPixelOffset = m_width*2 + 3 - 1;
+
+    // len(img) = (m_width*m_height)
+    int length = (m_width*m_height)*4 - maxPixelOffset;
+    uint magnitudes[length];
+    for (int i = 0; i < length; i++) {
+        // Sum each pixel with the kernel value
+        sumX = 0;
+        sumY = 0;
+
+        for (int x = 0; x < 3; x++) {
+            for (int y = 0; y < 3; y++) {
+                int idx = i + (m_width * y) + x;
+                if  (idx < (m_width*m_height)) {
+                    int r = img[i+(m_width*y)+x];
+                    sumX += r * sobelKernelX[y][x];
+                    sumY += r * sobelKernelY[y][x];
+                }
+            }
+        }
+        float magnitude = std::sqrt((float)(sumX*sumX) + (float)(sumY*sumY));
+        // Check for pixel color boundaries
+        if (magnitude < 0) {
+            magnitude = 0;
+        } else if (magnitude > 255) {
+            magnitude = 255;
+        }
+
+        // Set magnitude to 0 if doesn't exceed threshold, else set to magnitude
+        if (magnitude > seuilFiltre) {
+            magnitudes[i] = (unsigned int)magnitude;
+        } else {
+            magnitudes[i] = 0;
+        }
+    }
+
+    int dataLength = m_width * m_height * 4;
+//    int edges [dataLength] ;
+    std::vector<int> edges;
+    edges.resize(dataLength);
+
+    // Apply the kernel values
+    for (int i = 0; i < dataLength; i++){
+        edges[i] = 0;
+        if (i%4 != 0) {
+            int m = magnitudes[i/4];
+            if (m != 0) {
+                edges[i-1] = m;
+            }
+        }
+//        std::cout << edges[i] << std::endl;
+    }
+
+    // Generate the new image with the sobel filter applied
+//    std::cout << edges.size() << std::endl;
+
+    int i =0;
+    for (size_t idx = 0; idx < edges.size(); idx += 4) {
+//        std::cout << edges[idx] << std::endl;
+        copy[i] = (unsigned int)edges[idx];
+        i++;
+//        copy[idx+1] = (unsigned int)edges[idx+1];
+//        copy[idx+2] = (unsigned int)edges[idx+2];
+//        copy[idx+3] = 255;
+    }
+
+    sauvegarder("sobel.pgm", copy, nH, nW);
     //----------------------------------------
     //Récupérer vertices
-    qDebug()<<"test1"<< Qt::endl;
     echantillonageContour(copy, seuil, maxPoints, pointRate);
 
     // qDebug()<<"m_vertices.size() ="<<m_vertices.size()<< Qt::endl;
 
-    //----------------------------------------
     //Delaunay Triangulation
-    std::vector<double> coords = vectorOfVec2TovectorOfDouble(m_vertices);
-    Delaunator d(coords);
-
-    for(std::size_t i = 0; i < d.triangles.size(); i+=3) {
-        Vec2 a = {(float)d.coords[2 * d.triangles[i]], (float)d.coords[2 * d.triangles[i] + 1]};
-        Vec2 b = {(float)d.coords[2 * d.triangles[i + 1]], (float)d.coords[2 * d.triangles[i + 1] + 1]};
-        Vec2 c = {(float)d.coords[2 * d.triangles[i + 2]], (float)d.coords[2 * d.triangles[i + 2] + 1]};
-        int a_index = getVertexIndex(m_vertices, a);
-        int b_index= getVertexIndex(m_vertices, b);
-        int c_index= getVertexIndex(m_vertices, c);
-        if (a_index == -1 || b_index== -1 || c_index== -1 )
-        {
-            qDebug()<< a_index<< b_index<<c_index << Qt::endl;
-            exit(3);
-        }
-        else
-        {
-            m_triangles.push_back({(unsigned int)a_index, (unsigned int)b_index, (unsigned int)c_index});
-        }
-    }
+    delaunayTriangulation();
 }
 //------------------------------------------------------------------------------------------
 struct Region

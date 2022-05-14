@@ -45,9 +45,11 @@ private:
   QSpinBox *gradientSeuilSpinBox;
   QSpinBox *gradientMaxPointsSpinBox;
   QDoubleSpinBox *gradientPointRateSpinBox;
-  QSpinBox *SobelSeuilSpinBox;
-  QSpinBox *SobelMaxPointsSpinBox;
-  QDoubleSpinBox *SobelPointRateSpinBox;
+
+  QSpinBox *sobelSeuilFiltreSpinBox;
+  QSpinBox *sobelSeuilSpinBox;
+  QSpinBox *sobelMaxPointsSpinBox;
+  QDoubleSpinBox *sobelPointRateSpinBox;
 
   QSpinBox *optimizationSpeedSpinBox;
 

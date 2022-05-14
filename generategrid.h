@@ -15,7 +15,10 @@ public:
     void computeTriangulationSplitAndMerge(QString filename, double maxVariance,int maxDist);
 
     void echantillonageContour(std::vector<unsigned char>& edgeMap, int seuil, int maxPoints, float pointRate);
+    void delaunayTriangulation();
+
     void computeTriangulationGradientMap(QString filename, int seuil, int maxPoints, float pointRate);
+    void computeTriangulationSobelMap(QString filename, int seuilFiltre, int seuil, int maxPoints, float pointRate);
 
 
 

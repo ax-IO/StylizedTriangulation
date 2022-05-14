@@ -18,19 +18,12 @@ int GLWidget::getGridResolution()
     return m_gridResolution;
 }
 
+//------------------------------------------------------------------------------------------
 void GLWidget::changeRegularGridResolution(int resolution)
 {
     qDebug() << "New grid resolution :"<<resolution<<"--> ("<<resolution+ 2<< ","<<resolution +2<<")";
     m_gridResolution = resolution;
     m_tri = Triangulation{m_gridResolution};
-}
-
-void GLWidget::updateGradientGrid(QString filename, int seuil, int maxPoints, float pointRate)
-{
-    qDebug() << "Update Gradient Grid : filename = "<<filename<< " seuil = "<<seuil<<" maxPoints = "<<maxPoints<<" pointRate = "<<pointRate<<Qt::endl;
-    GenerateGrid *splitGrid = new GenerateGrid(m_width, m_height);
-    splitGrid->computeTriangulationGradientMap(filename, seuil, maxPoints, pointRate);
-    m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
 }
 
 void GLWidget::updateSplitGrid(QString filename, double maxVariance,int maxDist)
@@ -40,8 +33,22 @@ void GLWidget::updateSplitGrid(QString filename, double maxVariance,int maxDist)
     splitGrid->computeTriangulationSplitAndMerge(filename,  maxVariance, maxDist);
     m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
 }
+void GLWidget::updateGradientGrid(QString filename, int seuil, int maxPoints, float pointRate)
+{
+    qDebug() << "Update Gradient Grid : filename = "<<filename<< " seuil = "<<seuil<<" maxPoints = "<<maxPoints<<" pointRate = "<<pointRate<<Qt::endl;
+    GenerateGrid *splitGrid = new GenerateGrid(m_width, m_height);
+    splitGrid->computeTriangulationGradientMap(filename, seuil, maxPoints, pointRate);
+    m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
+}
 
-
+void GLWidget::updateSobelGrid(QString filename, int seuilFiltre, int seuil, int maxPoints, float pointRate)
+{
+    qDebug() << "Update Sobel Grid : filename = "<<filename<< " seuilFiltre "<<seuilFiltre<<" seuil = "<<seuil<<" maxPoints = "<<maxPoints<<" pointRate = "<<pointRate<<Qt::endl;
+    GenerateGrid *splitGrid = new GenerateGrid(m_width, m_height);
+    splitGrid->computeTriangulationSobelMap(filename, seuilFiltre, seuil, maxPoints, pointRate);
+    m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
+}
+//------------------------------------------------------------------------------------------
 void GLWidget::renderModeConstant()
 {
     qDebug() << "Render Mode Changed : Constant";
@@ -53,7 +60,7 @@ void GLWidget::renderModeGradient()
     qDebug() << "Render Mode Changed : Gradient";
     m_renderMode = COLOR_GRADIENT;
 }
-
+//------------------------------------------------------------------------------------------
 void GLWidget::optimizationPass()
 {
     qDebug() << "Passe d'optimisation";
@@ -64,6 +71,7 @@ void GLWidget::optimizationSplitPass()
     qDebug() << "Passe d'optimisation Split";
     m_tri_opt->optimizeSplit(m_tri, tex);
 }
+//------------------------------------------------------------------------------------------
 
 void GLWidget::initializeGL() {
   qDebug() << "initializeGL() :";
@@ -133,6 +141,7 @@ float GLWidget::normalize_0_1(float val, float min, float max) const {
   return (val - min) / (max - min);
 }
 
+//------------------------------------------------------------------------------------------
 // Retourne les coordonnées textures [0, 1] à partir des coordonnées de l'image
 // et ses dimensions
 Vec2 GLWidget::coord_imageToTexture(QPoint point_image, int width, int height) {

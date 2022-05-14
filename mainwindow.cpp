@@ -183,6 +183,10 @@ menuBar()->setFixedHeight(filebar_height);
   showInitializeGradientGridWindowAct= gridMenu->addAction(tr("Générer un grille par Carte de gradient"), this, &MainWindow::initializeGradientGridWindow);
   showInitializeGradientGridWindowAct->setShortcut(tr("Ctrl+y"));
   showInitializeGradientGridWindowAct->setEnabled(false);
+
+  showInitializeSobelGridWindowAct= gridMenu->addAction(tr("Générer un grille par Carte de Sobel"), this, &MainWindow::initializeSobelGridWindow);
+  showInitializeSobelGridWindowAct->setShortcut(tr("Ctrl+u"));
+  showInitializeSobelGridWindowAct->setEnabled(false);
   //------------------------------------------------------------------------------------------
   QMenu *optimisationMenu = menuBar()->addMenu(tr("&Optimisation"));
 
@@ -218,8 +222,9 @@ void MainWindow::updateActions() {
   renderModeGradientAct->setEnabled(!image.isNull());
 
   showInitializeRegularGridWindowAct->setEnabled(!image.isNull());
-  showInitializeGradientGridWindowAct->setEnabled(!image.isNull());
   showInitializeSplitGridWindowAct->setEnabled(!image.isNull());
+  showInitializeGradientGridWindowAct->setEnabled(!image.isNull());
+  showInitializeSobelGridWindowAct->setEnabled(!image.isNull());
 
   optimizationPassAct->setEnabled(!image.isNull());
   optimizationSplitPassAct->setEnabled(!image.isNull());
@@ -469,7 +474,64 @@ void MainWindow::initializeGradientGridWindow()
 }
 void MainWindow::initializeSobelGridWindow()
 {
+    QWidget *resolutionWindow = new QWidget;
 
+
+    QLabel *sobelintegerLabel = new QLabel(tr("Génération d'une grille initiale par carte de Sobel"));
+
+    QLabel *SobelSeuilFiltreLabel = new QLabel(tr("Seuil pour le filtre de Sobel : "));
+    sobelSeuilFiltreSpinBox = new QSpinBox();
+    sobelSeuilFiltreSpinBox->setRange(0, 255);
+    sobelSeuilFiltreSpinBox->setSingleStep(1);
+    sobelSeuilFiltreSpinBox->setValue(128);
+    connect(sobelSeuilFiltreSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
+    QHBoxLayout *hbox0 = new QHBoxLayout;
+    hbox0->addWidget(SobelSeuilFiltreLabel);
+    hbox0->addWidget(sobelSeuilFiltreSpinBox);
+
+    QLabel *SobelSeuilLabel = new QLabel(tr("Seuil Points: "));
+    sobelSeuilSpinBox = new QSpinBox();
+    sobelSeuilSpinBox->setRange(1, 10000);
+    sobelSeuilSpinBox->setSingleStep(1);
+    sobelSeuilSpinBox->setValue(2);
+    connect(sobelSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
+    QHBoxLayout *hbox = new QHBoxLayout;
+    hbox->addWidget(SobelSeuilLabel);
+    hbox->addWidget(sobelSeuilSpinBox);
+
+    QLabel *SobelMaxPointsLabel = new QLabel(tr("Max Points : "));
+    sobelMaxPointsSpinBox = new QSpinBox();
+    sobelMaxPointsSpinBox->setRange(5, 10000);
+    sobelMaxPointsSpinBox->setSingleStep(1);
+    sobelMaxPointsSpinBox->setValue(300);
+    connect(sobelMaxPointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
+    QHBoxLayout *hbox2 = new QHBoxLayout;
+    hbox2->addWidget(SobelMaxPointsLabel);
+    hbox2->addWidget(sobelMaxPointsSpinBox);
+
+    QLabel *SobelPointRateLabel = new QLabel(tr("Taux de Points: "));
+    sobelPointRateSpinBox = new QDoubleSpinBox();
+    sobelPointRateSpinBox->setRange(0, 1);
+    sobelPointRateSpinBox->setSingleStep(0.01);
+    sobelPointRateSpinBox->setValue(0.88);
+    connect(sobelPointRateSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
+    QHBoxLayout *hbox3 = new QHBoxLayout;
+    hbox3->addWidget(SobelPointRateLabel);
+    hbox3->addWidget(sobelPointRateSpinBox);
+
+
+    QPushButton *applySobelButton = new QPushButton("Appliquer");
+    connect(applySobelButton, &QPushButton::released, this, &MainWindow::callUpdateSobelGrid);
+
+    QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
+
+    layout->addWidget(sobelintegerLabel);
+    layout->addLayout(hbox0);
+    layout->addLayout(hbox);
+    layout->addLayout(hbox2);
+    layout->addLayout(hbox3);
+    layout->addWidget(applySobelButton);
+    resolutionWindow->show();
 }
 
 //------------------------------------------------------------------------------------------
@@ -492,8 +554,8 @@ void MainWindow::callUpdateGradientGrid()
 }
 void MainWindow::callUpdateSobelGrid()
 {
-//    openGL->updateGradientGrid(pgm_filename, gradientSeuilSpinBox->value(), gradientMaxPointsSpinBox->value(), gradientPointRateSpinBox->value());
-//    openGL->update();
+    openGL->updateSobelGrid(pgm_filename, sobelSeuilFiltreSpinBox->value(),sobelSeuilSpinBox->value(), sobelMaxPointsSpinBox->value(), sobelPointRateSpinBox->value());
+    openGL->update();
 }
 
 void MainWindow::callRenderModeConstant()

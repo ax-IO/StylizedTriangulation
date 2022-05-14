@@ -33,8 +33,10 @@ public:
 
   int getGridResolution();
   void changeRegularGridResolution(int resolution);
-  void updateGradientGrid(QString filename, int seuil, int maxPoints, float pointRate);
   void updateSplitGrid(QString filename, double maxVariance,int maxDist);
+  void updateGradientGrid(QString filename, int seuil, int maxPoints, float pointRate);
+  void updateSobelGrid(QString filename, int seuilFiltre, int seuil, int maxPoints, float pointRate);
+
 
   void renderModeConstant();
   void renderModeGradient();
