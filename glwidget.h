@@ -61,7 +61,7 @@ private:
   int m_width;
   int m_height;
 
-  size_t m_gridResolution = 3;
+  size_t m_gridResolution = 8;
 
 
 

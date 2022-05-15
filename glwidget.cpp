@@ -148,7 +148,7 @@ Vec2 GLWidget::coord_imageToTexture(QPoint point_image, int width, int height) {
   Vec2 point_texture;
   point_texture.x = (float)point_image.x() / (float)width;
   point_texture.y = (float)point_image.y() / (float)height;
-
+  point_texture.y = 1.0f - point_texture.y ;
   return point_texture;
 }
 
@@ -180,4 +180,10 @@ void GLWidget::mousePressEvent(QMouseEvent *event) {
            << ") correspond au sommet" << index << "("
            << m_tri.vertices()[index].x << "," << m_tri.vertices()[index].y
            << ")" << Qt::endl;
+
+  if (!(event->buttons() & Qt::RightButton))
+      m_tri.deleteVertex(index);
+//  if (!(event->buttons() & Qt::LeftButton))
+//      m_tri.deleteTriangle(index);
+  this->update();
 }
