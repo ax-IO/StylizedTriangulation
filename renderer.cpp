@@ -23,10 +23,11 @@ struct Linear_coeff
 struct Computed_coeff
 {
     float R[3], G[3], B[3];
+    int singular = 0;
 };
 
 
-// Matrice dont la partie supérieure seulement est remplie
+// Matrice triangulaire dont la partie supérieure seulement est remplie
 Eigen::SparseMatrix<float> matrix_from_coeff(uint comp[6])
 {
     Eigen::SparseMatrix<float> output(3, 3);
@@ -168,7 +169,7 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
 
     // Contiendra les coefficients a, b et c pour chaque triangles.
     int coeff_index = 0;
-    std::vector<Computed_coeff> lin_coeff(tri.triangles().size());
+    std::vector<Computed_coeff> computed_coeff(tri.triangles().size());
     bool first_pass = true;
 
     //1ere passe:
@@ -196,76 +197,77 @@ void Renderer::render(const Triangulation& tri, unsigned int tex, int style)
             // Décomposition de Cholesky pour calculer a, b et c à partir de la matrice remplie en première passe pour chaque triangle
             for(Linear_coeff tri_matrices : computed)
             {
+                Computed_coeff to_load;
+
                 Eigen::SparseMatrix<float> A_mat = matrix_from_coeff(tri_matrices.A_upper);
-                std::cout<<"EIGEN MATRIX UPPER ONLY?"<<std::endl;
-                for(int i = 0; i < 3; i ++)
-                {
-                    for(int j = 0; j < 3; j ++)
-                    {
-                        std::cout<<A_mat.coeffRef(i,j)<<" ";
-                    }
-                    std::cout<<std::endl;
-                }
-
-                //A
-//                gsl_matrix* A_matrix = gsl_matrix_alloc(3, 3);
-//                map_coeff_to_matrix(tri_matrices.A_upper, A_matrix);
-
-                //Décomposition de la matrice A en L^t*L
-//                gsl_linalg_cholesky_decomp(A_matrix);
-//eigen
-                Eigen::SimplicialLLT<Eigen::SparseMatrix<float>, Eigen::Upper> solver;
-//                Eigen::SimplicialCholesky<Eigen::SparseMatrix<unsigned>> solver;
+                Eigen::SimplicialLDLT<Eigen::SparseMatrix<float>, Eigen::Upper> solver;
 
                 solver.compute(A_mat);
                 if(solver.info() != Eigen::Success)
                 {
+                    //A est singulière -> couleur constante
                     std::cout<<"A -> LLT Decomposition failed."<<std::endl;
+                    for(int i = 0; i < 3; i ++)
+                    {
+                        for(int j = 0; j < 3; j ++)
+                        {
+                            std::cout<<A_mat.coeffRef(i,j)<<" ";
+                        }
+                        std::cout<<std::endl;
+                    }
+
+                    to_load.singular = 1;
+                    int sz = A_mat.coeffRef(2, 2);
+                    to_load.R[0] = (float) tri_matrices.R_b_vec[2] / (float) sz;
+                    to_load.G[0] = (float) tri_matrices.G_b_vec[2] / (float) sz;
+                    to_load.B[0] = (float) tri_matrices.B_b_vec[2] / (float) sz;
+
+                }
+                else{
+                    std::cout<<"in else "<<solver.info()<<" == "<<Eigen::Success<<std::endl;
+                    Eigen::Vector3<float> rb, gb, bb;
+                    for(int i = 0; i < 3; i ++)
+                    {
+                        rb(i) =  tri_matrices.R_b_vec[i];
+                        gb(i) =  tri_matrices.G_b_vec[i];
+                        bb(i) =  tri_matrices.B_b_vec[i];
+                    }
+
+                    //solver Ax = b pour chaque canal (on réutilise la même décomposition de A)
+                    Eigen::Vector3<float> abc;
+                    abc = solver.solve(rb);
+                    if(solver.info() != Eigen::Success)
+                    {
+                        std::cout<<"SOLVER FOR Ax=b FAILED. (red)"<<std::endl;
+                    }
+                    for(int i = 0; i < 3; i ++) to_load.R[i] = abc(i);
+
+                    abc = solver.solve(gb);
+                    if(solver.info() != Eigen::Success)
+                    {
+                        std::cout<<"SOLVER FOR Ax=b FAILED. (green)"<<std::endl;
+                    }
+                    for(int i = 0; i < 3; i ++) to_load.G[i] = abc(i); /*std::cout<<"ABC GB "<<abc(i)<<std::endl;*/
+
+                    abc = solver.solve(bb);
+                    if(solver.info() != Eigen::Success)
+                    {
+                        std::cout<<"SOLVER FOR Ax=b FAILED. (blue)"<<std::endl;
+                    }
+                    for(int i = 0; i < 3; i ++) to_load.B[i] = abc(i); /*std::cout<<"ABC BB "<<abc(i)<<std::endl;*/
+
                 }
 
-
-//eigen
-                Eigen::Vector3<float> rb, gb, bb;
-                for(int i = 0; i < 3; i ++)
-                {
-                    rb(i) =  tri_matrices.R_b_vec[i];
-                    gb(i) =  tri_matrices.G_b_vec[i];
-                    bb(i) =  tri_matrices.B_b_vec[i];
-                }
-
-                //solver Ax = b pour chaque canal (on réutilise la même décomposition de A)
-                Computed_coeff to_load;
-                Eigen::Vector3<float> abc;
-                abc = solver.solve(rb);
-                if(solver.info() != Eigen::Success)
-                {
-                    std::cout<<"SOLVER FOR Ax=b FAILED. (red)"<<std::endl;
-                }
-                for(int i = 0; i < 3; i ++) to_load.R[i] = abc(i);
-
-                abc = solver.solve(gb);
-                if(solver.info() != Eigen::Success)
-                {
-                    std::cout<<"SOLVER FOR Ax=b FAILED. (green)"<<std::endl;
-                }
-                for(int i = 0; i < 3; i ++) to_load.G[i] = abc(i); /*std::cout<<"ABC GB "<<abc(i)<<std::endl;*/
-
-                abc = solver.solve(bb);
-                if(solver.info() != Eigen::Success)
-                {
-                    std::cout<<"SOLVER FOR Ax=b FAILED. (blue)"<<std::endl;
-                }
-                for(int i = 0; i < 3; i ++) to_load.B[i] = abc(i); /*std::cout<<"ABC BB "<<abc(i)<<std::endl;*/
 
                 //Ajout dans le tableau des coefficients (abc) calculés pour le triangle courant à charger au gpu plus tard.
-                lin_coeff[coeff_index] = to_load;
+                computed_coeff[coeff_index] = to_load;
                 coeff_index ++;
 
             }
 
             //Charger les coefficients a, b et c calculés dans le GPU pour la 2nde passe
             gl_fct->glBindBuffer(GL_SHADER_STORAGE_BUFFER, storage_buffer);
-            gl_fct->glBufferData(GL_SHADER_STORAGE_BUFFER, tri.triangles().size() * sizeof(Linear_coeff), lin_coeff.data(), GL_DYNAMIC_COPY);
+            gl_fct->glBufferData(GL_SHADER_STORAGE_BUFFER, tri.triangles().size() * sizeof(Computed_coeff), computed_coeff.data(), GL_DYNAMIC_COPY);
             gl_fct->glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, storage_buffer);
 
 
