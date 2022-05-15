@@ -75,6 +75,13 @@ bool MainWindow::loadFile(const QString &fileName) {
 
 
 //    resize(image.width(), image.height());
+  if (image.width()==image.height())
+  {
+      isImageSquare = true;
+  }
+  else{
+      isImageSquare = false;
+  }
   this->setFixedSize(QSize(image.width(), image.height() + filebar_height + statusbar_height));
 //  resize(image.width(), image.height() + filebar_height + statusbar_height);
 //------------------------------------------------------------------------------------------
@@ -229,7 +236,7 @@ void MainWindow::updateActions() {
   renderModeGradientAct->setEnabled(!image.isNull());
 
   showInitializeRegularGridWindowAct->setEnabled(!image.isNull());
-  showInitializeSplitGridWindowAct->setEnabled(!image.isNull());
+  showInitializeSplitGridWindowAct->setEnabled(!image.isNull()&&isImageSquare);
   showInitializeGradientGridWindowAct->setEnabled(!image.isNull());
   showInitializeSobelGridWindowAct->setEnabled(!image.isNull());
 
@@ -403,7 +410,7 @@ void MainWindow::initializeSplitGridWindow()
     splitMaxVarianceSpinBox = new QSpinBox();
     splitMaxVarianceSpinBox->setRange(1, 10000);
     splitMaxVarianceSpinBox->setSingleStep(1);
-    splitMaxVarianceSpinBox->setValue(1);
+    splitMaxVarianceSpinBox->setValue(500);
 //    connect(splitMaxVarianceSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSplitGrid);
     QHBoxLayout *hbox = new QHBoxLayout;
     hbox->addWidget(SplitMaxVarianceLabel);
@@ -413,7 +420,7 @@ void MainWindow::initializeSplitGridWindow()
     splitMaxDistanceSpinBox = new QSpinBox();
     splitMaxDistanceSpinBox->setRange(1, 10000);
     splitMaxDistanceSpinBox->setSingleStep(1);
-    splitMaxDistanceSpinBox->setValue(1);
+    splitMaxDistanceSpinBox->setValue(5);
 //    connect(splitMaxDistanceSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSplitGrid);
     QHBoxLayout *hbox2 = new QHBoxLayout;
     hbox2->addWidget(SplitMaxDistanceLabel);
@@ -440,7 +447,7 @@ void MainWindow::initializeGradientGridWindow()
     gradientSeuilSpinBox->setRange(1, 10000);
     gradientSeuilSpinBox->setSingleStep(1);
     gradientSeuilSpinBox->setValue(2);
-    connect(gradientSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
+//    connect(gradientSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
     QHBoxLayout *hbox = new QHBoxLayout;
     hbox->addWidget(GradientSeuilLabel);
     hbox->addWidget(gradientSeuilSpinBox);
@@ -450,7 +457,7 @@ void MainWindow::initializeGradientGridWindow()
     gradientMaxPointsSpinBox->setRange(5, 10000);
     gradientMaxPointsSpinBox->setSingleStep(1);
     gradientMaxPointsSpinBox->setValue(300);
-    connect(gradientMaxPointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
+//    connect(gradientMaxPointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
     QHBoxLayout *hbox2 = new QHBoxLayout;
     hbox2->addWidget(SplitMaxPointsLabel);
     hbox2->addWidget(gradientMaxPointsSpinBox);
@@ -460,7 +467,7 @@ void MainWindow::initializeGradientGridWindow()
     gradientPointRateSpinBox->setRange(0, 1);
     gradientPointRateSpinBox->setSingleStep(0.01);
     gradientPointRateSpinBox->setValue(0.88);
-    connect(gradientPointRateSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
+//    connect(gradientPointRateSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
     QHBoxLayout *hbox3 = new QHBoxLayout;
     hbox3->addWidget(GradientPointRateLabel);
     hbox3->addWidget(gradientPointRateSpinBox);
@@ -487,7 +494,7 @@ void MainWindow::initializeSobelGridWindow()
     sobelSeuilFiltreSpinBox->setRange(0, 255);
     sobelSeuilFiltreSpinBox->setSingleStep(1);
     sobelSeuilFiltreSpinBox->setValue(128);
-    connect(sobelSeuilFiltreSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
+//    connect(sobelSeuilFiltreSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
     QHBoxLayout *hbox0 = new QHBoxLayout;
     hbox0->addWidget(SobelSeuilFiltreLabel);
     hbox0->addWidget(sobelSeuilFiltreSpinBox);
@@ -497,7 +504,7 @@ void MainWindow::initializeSobelGridWindow()
     sobelSeuilSpinBox->setRange(1, 10000);
     sobelSeuilSpinBox->setSingleStep(1);
     sobelSeuilSpinBox->setValue(2);
-    connect(sobelSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
+//    connect(sobelSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
     QHBoxLayout *hbox = new QHBoxLayout;
     hbox->addWidget(SobelSeuilLabel);
     hbox->addWidget(sobelSeuilSpinBox);
@@ -507,7 +514,7 @@ void MainWindow::initializeSobelGridWindow()
     sobelMaxPointsSpinBox->setRange(5, 10000);
     sobelMaxPointsSpinBox->setSingleStep(1);
     sobelMaxPointsSpinBox->setValue(300);
-    connect(sobelMaxPointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
+//    connect(sobelMaxPointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
     QHBoxLayout *hbox2 = new QHBoxLayout;
     hbox2->addWidget(SobelMaxPointsLabel);
     hbox2->addWidget(sobelMaxPointsSpinBox);
@@ -517,7 +524,7 @@ void MainWindow::initializeSobelGridWindow()
     sobelPointRateSpinBox->setRange(0, 1);
     sobelPointRateSpinBox->setSingleStep(0.01);
     sobelPointRateSpinBox->setValue(0.88);
-    connect(sobelPointRateSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
+//    connect(sobelPointRateSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
     QHBoxLayout *hbox3 = new QHBoxLayout;
     hbox3->addWidget(SobelPointRateLabel);
     hbox3->addWidget(sobelPointRateSpinBox);

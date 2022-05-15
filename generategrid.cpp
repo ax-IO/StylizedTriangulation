@@ -202,7 +202,10 @@ void GenerateGrid::computeTriangulationSobelMap(QString filename, int seuilFiltr
 
     // len(img) = (m_width*m_height)
     int length = (m_width*m_height)*4 - maxPixelOffset;
-    uint magnitudes[length];
+    std::vector<unsigned int> magnitudes;
+    magnitudes.resize(length);
+//    uint magnitudes[length];
+
     for (int i = 0; i < length; i++) {
         // Sum each pixel with the kernel value
         sumX = 0;
@@ -592,36 +595,8 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
 
         //----------------------------------------
         //Delaunay Triangulation
-        std::vector<double> coords = vectorOfVec2TovectorOfDouble(m_vertices);
+        delaunayTriangulation();
 
-        Delaunator d(coords);
-
-        for(std::size_t i = 0; i < d.triangles.size(); i+=3) {
-//            printf(
-//                "Triangle points: [[%f, %f], [%f, %f], [%f, %f]]\n",
-//                d.coords[2 * d.triangles[i]],        //tx0
-//                d.coords[2 * d.triangles[i] + 1],    //ty0
-//                d.coords[2 * d.triangles[i + 1]],    //tx1
-//                d.coords[2 * d.triangles[i + 1] + 1],//ty1
-//                d.coords[2 * d.triangles[i + 2]],    //tx2
-//                d.coords[2 * d.triangles[i + 2] + 1] //ty2
-//            );
-            Vec2 a = {(float)d.coords[2 * d.triangles[i]], (float)d.coords[2 * d.triangles[i] + 1]};
-            Vec2 b = {(float)d.coords[2 * d.triangles[i + 1]], (float)d.coords[2 * d.triangles[i + 1] + 1]};
-            Vec2 c = {(float)d.coords[2 * d.triangles[i + 2]], (float)d.coords[2 * d.triangles[i + 2] + 1]};
-            int a_index = getVertexIndex(m_vertices, a);
-            int b_index= getVertexIndex(m_vertices, b);
-            int c_index= getVertexIndex(m_vertices, c);
-            if (a_index == -1 || b_index== -1 || c_index== -1 )
-            {
-                qDebug()<< a_index<< b_index<<c_index << Qt::endl;
-                exit(3);
-            }
-            else
-            {
-                m_triangles.push_back({(unsigned int)a_index, (unsigned int)b_index, (unsigned int)c_index});
-            }
-        }
 }
 
 //------------------------------------------------------------------------------------------

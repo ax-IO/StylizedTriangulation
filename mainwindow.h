@@ -73,6 +73,7 @@ private:
   QScrollArea *scrollArea;
   double scaleFactor = 1;
 
+  bool isImageSquare;
   QLabel *imageLabel;
   GLWidget *openGL;
 

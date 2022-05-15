@@ -223,7 +223,7 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
                 }
                 else
                 {
-                    std::cout << "in else " << solver.info() << " == " << Eigen::Success << std::endl;
+//                    std::cout << "in else " << solver.info() << " == " << Eigen::Success << std::endl;
                     Eigen::Vector3<float> rb, gb, bb;
                     for (int i = 0; i < 3; i++)
                     {
