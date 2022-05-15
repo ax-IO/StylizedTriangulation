@@ -24,16 +24,6 @@ namespace
         return al.x * ar.y - ar.x * al.y > 0;
     }
 
-    float sqrLen(Vec2 x)
-    {
-        return x.x * x.x + x.y * x.y;
-    }
-
-    float sqrDist(Vec2 a, Vec2 b)
-    {
-        return sqrLen({b.x-a.x, b.y-a.y});
-    }
-
     float angle(Vec2 l, Vec2 a, Vec2 r)
     {
         using std::sqrt, std::acos;
@@ -49,32 +39,6 @@ namespace
         GLuint color_total_b = 0;
         GLuint count = 0;
     };
-
-    void addTrianglePerVertex(unsigned t, const Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
-    {
-        Triangle triangle = triangulation.triangles()[t];
-        triangles_per_vertex[triangle.a].emplace_back(t,0);
-        triangles_per_vertex[triangle.b].emplace_back(t,1);
-        triangles_per_vertex[triangle.c].emplace_back(t,2);
-    }
-
-    void removeTrianglePerVertex(unsigned t, const Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
-    {
-        auto f = [t](auto& item) { return item.first == t; };
-        Triangle triangle = triangulation.triangles()[t];
-        VertexIndice vertices[]{triangle.a, triangle.b, triangle.c};
-        for(VertexIndice v : vertices) triangles_per_vertex[v].erase(std::remove_if(begin(triangles_per_vertex[v]), end(triangles_per_vertex[v]), f), end(triangles_per_vertex[v]));
-    }
-
-    auto computeTrianglesPerVertex(const Triangulation& triangulation)
-    {
-        std::vector<std::vector<std::pair<unsigned,unsigned char>>> result(triangulation.size());
-        for(unsigned i = 0; i < triangulation.triangles().size(); ++i)
-        {
-            addTrianglePerVertex(i, triangulation, result);
-        }
-        return result;
-    }
 
     auto computeRegularisationGradients(const Triangulation& triangulation, const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex, float pixel_width, float pixel_height)
     {
@@ -123,41 +87,8 @@ namespace
         }
         return result;
     }
-    
-    void applyOptimization(Triangulation& triangulation, const std::vector<TriangulationOptimizer::ErrorData>& error_data, float step, float step_clamp_pixel, float regularisation, float pixel_width, float pixel_height)
-    {
-        auto triangles_per_vertex = computeTrianglesPerVertex(triangulation);
 
-        std::vector<Vec2> regularisation_gradients = computeRegularisationGradients(triangulation, triangles_per_vertex, pixel_width, pixel_height);
-        std::vector<Vec2> gradients = computeGradients(triangulation, triangles_per_vertex, error_data, pixel_width, pixel_height);
-
-        std::vector<Vec2> new_vertices = triangulation.vertices();
-        for(VertexIndice i = 0; i < new_vertices.size(); ++i)
-        {
-            Vec2 gradient{ gradients[i].x * step + regularisation_gradients[i].x * regularisation,
-                gradients[i].y * step + regularisation_gradients[i].y * regularisation };
-            gradient.x = std::clamp(gradient.x, -pixel_width * step_clamp_pixel, pixel_width * step_clamp_pixel);
-            gradient.y = std::clamp(gradient.y, -pixel_height * step_clamp_pixel, pixel_height * step_clamp_pixel);
-            if(new_vertices[i].x != 0 && new_vertices[i].x != 1 && new_vertices[i].y != 0 && new_vertices[i].y != 1)
-            {
-                new_vertices[i].x -= gradient.x;
-                new_vertices[i].y -= gradient.y;
-            }
-
-            for(auto [t,unused] : triangles_per_vertex[i])
-            {
-                Triangle tri = triangulation.triangles()[t];
-                if(sens(tri, triangulation) != sens(tri, new_vertices))
-                {
-                    new_vertices[i] = triangulation[i];
-                    break;
-                }
-            }
-        }
-        std::copy(begin(new_vertices), end(new_vertices), begin(triangulation));
-    }
-
-    void checkForFlip(unsigned t, Triangulation& triangulation, std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
+    void checkForFlip(unsigned t, Triangulation& triangulation, const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& triangles_per_vertex)
     {
         Triangle tri = triangulation.triangles()[t];
         VertexIndice indices[]{tri.a, tri.b, tri.c};
@@ -181,11 +112,7 @@ namespace
                 }
                 if(has_edge && local_angle + angle(triangulation[v1], triangulation[opposite], triangulation[v2]) >= M_PI)
                 {
-                    removeTrianglePerVertex(t, triangulation, triangles_per_vertex);
-                    removeTrianglePerVertex(other_t, triangulation, triangles_per_vertex);
                     triangulation.flipCommonEdge(t, other_t);
-                    addTrianglePerVertex(t, triangulation, triangles_per_vertex);
-                    addTrianglePerVertex(other_t, triangulation, triangles_per_vertex);
                     return;
                 }
             }
@@ -302,7 +229,7 @@ bool tri_eq(const Triangle& l, const Triangle& r)
     return true;
 }
 
-void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned texture_handle)
+void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned texture_handle, bool split)
 {
     int w, h;
     _gl->glActiveTexture(GL_TEXTURE0);
@@ -313,41 +240,59 @@ void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned tex
     float pixel_height = 1.f / h;
 
     auto error_data = computeErrors(triangulation, w, h);
-    
-    applyOptimization(triangulation, error_data, _step, _step_clamp_pixel, _regularisation, pixel_width, pixel_height);
-}
 
-void TriangulationOptimizer::optimizeSplit(Triangulation& triangulation, unsigned texture_handle)
-{
-    int w, h;
-    _gl->glActiveTexture(GL_TEXTURE0);
-    _gl->glBindTexture(GL_TEXTURE_2D, texture_handle);
-    _gl->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
-    _gl->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
-    float pixel_width = 1.f / w;
-    float pixel_height = 1.f / h;
+    const auto& triangles_per_vertex = triangulation.trianglesPerVertex();
 
-    auto error_data = computeErrors(triangulation, w, h);
-    
-    applyOptimization(triangulation, error_data, _step, _step_clamp_pixel, _regularisation, pixel_width, pixel_height);
+    std::vector<Vec2> regularisation_gradients = computeRegularisationGradients(triangulation, triangles_per_vertex, pixel_width, pixel_height);
+    std::vector<Vec2> gradients = computeGradients(triangulation, triangles_per_vertex, error_data, pixel_width, pixel_height);
 
-    std::size_t tri_count = triangulation.triangles().size();
+    std::vector<Vec2> new_vertices = triangulation.vertices();
+    for(VertexIndice i = 0; i < new_vertices.size(); ++i)
+    {
+        Vec2 gradient{ gradients[i].x * _step + regularisation_gradients[i].x * _regularisation,
+            gradients[i].y * _step + regularisation_gradients[i].y * _regularisation };
+        gradient.x = std::clamp(gradient.x, -pixel_width * _step_clamp_pixel, pixel_width * _step_clamp_pixel);
+        gradient.y = std::clamp(gradient.y, -pixel_height * _step_clamp_pixel, pixel_height * _step_clamp_pixel);
+        if(new_vertices[i].x != 0 && new_vertices[i].x != 1 && new_vertices[i].y != 0 && new_vertices[i].y != 1)
+        {
+            new_vertices[i].x -= gradient.x;
+            new_vertices[i].y -= gradient.y;
+        }
+
+        for(auto [t,unused] : triangles_per_vertex[i])
+        {
+            Triangle tri = triangulation.triangles()[t];
+            if(sens(tri, triangulation) != sens(tri, new_vertices))
+            {
+                new_vertices[i] = triangulation[i];
+                break;
+            }
+        }
+    }
+    std::copy(begin(new_vertices), end(new_vertices), begin(triangulation));
+
+    unsigned tri_count = triangulation.triangles().size();
     unsigned long long total_count = 0;
-    for(std::size_t t = 0; t < tri_count; ++t)
+    for(unsigned t = 0; t < tri_count; ++t)
     {
         total_count += error_data[t*13].count;
     }
 
-    for(std::size_t t = 0; t < tri_count; ++t)
+    std::vector<unsigned> tris_to_del;
+    for(unsigned t = 0; t < tri_count; ++t)
     {
-        if((float)error_data[t*13].error_total / total_count >= _energy_split_treshold) triangulation.splitTriangle(t);
+        if(split && (float)error_data[t*13].error_total / total_count >= _energy_split_treshold) triangulation.splitTriangle(t);
+        else if(triangulation.triangleArea(t) < _min_triangle_area) tris_to_del.push_back(t);
     }
-
-    //There can be new vertices and triangles, so recompute the map
-    auto triangles_per_vertex = computeTrianglesPerVertex(triangulation);
+    for(auto it = tris_to_del.rbegin(), e = tris_to_del.rend(); it != e; ++it) triangulation.deleteTriangle(*it);
 
     for(unsigned t = 0; t < triangulation.triangles().size(); ++t)
     {
         checkForFlip(t, triangulation, triangles_per_vertex);
     }
+}
+
+void TriangulationOptimizer::optimizeSplit(Triangulation& triangulation, unsigned texture_handle)
+{
+    optimize(triangulation, texture_handle, true);
 }

@@ -13,7 +13,7 @@ public:
     TriangulationOptimizer();
     TriangulationOptimizer(const TriangulationOptimizer&) = delete;
     ~TriangulationOptimizer();
-    void optimize (Triangulation&, unsigned int);
+    void optimize (Triangulation&, unsigned int, bool split=false);
     void optimizeSplit (Triangulation&, unsigned int);
 
 private:
@@ -26,6 +26,7 @@ private:
     float _step_clamp_pixel = 0.2f;
     float _regularisation = 0.001f;
     float _energy_split_treshold = 0.5f;
+    float _min_triangle_area = 0.001;
 };
 
 #endif // TRIANGULATIONOPTIMIZER_H
