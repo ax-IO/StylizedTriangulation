@@ -76,6 +76,13 @@ VertexIndice Triangulation::size() const
     return _vertices.size();
 }
 
+float Triangulation::triangleArea(unsigned t) const
+{
+    Vec2 a = _vertices[_triangles[t].a];
+    Vec2 b = _vertices[_triangles[t].b];
+    Vec2 c = _vertices[_triangles[t].c];
+    return std::abs((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)) / 2;
+}
 
 bool Triangulation::isEdgeVertex(VertexIndice i) const
 {
@@ -209,6 +216,22 @@ void Triangulation::deleteEdge(VertexIndice from, VertexIndice to)
         }
     }
     _triangles.erase(_triangles.begin() + new_t_id, _triangles.end());
+}
+
+void Triangulation::deleteTriangle(unsigned t)
+{
+    int shortest_edge;
+    float shortest_sqr_dist = std::numeric_limits<float>::infinity();
+    for(int i = 0; i < 3; ++i)
+    {
+        float dist = sqrDist(_vertices[_triangles[t].arr[i]], _vertices[_triangles[t].arr[(i+1)%3]]);
+        if(dist < shortest_sqr_dist)
+        {
+            shortest_edge = i;
+            shortest_sqr_dist = dist;
+        }
+    }
+    deleteEdge(_triangles[t].arr[shortest_edge], _triangles[t].arr[(shortest_edge+1)%3]);
 }
 
 void Triangulation::addTrianglePerVertex(unsigned t)
