@@ -47,18 +47,37 @@ Eigen::SparseMatrix<float> matrix_from_coeff(uint comp[6])
 }
 
 // Flatten triangles to send to DrawElements
-std::vector<VertexIndice> compute_indices(const Triangulation tri)
+std::vector<VertexIndice> compute_indices(const Triangulation tri, bool linify = false)
 {
     std::vector<VertexIndice> indices;
-    indices.resize(3 * tri.triangles().size());
+    if (linify)
+    {
+        indices.resize(6 * tri.triangles().size());
+    }
+    else
+    {
+        indices.resize(3 * tri.triangles().size());
+    }
 
     int k = 0;
     for (Triangle t : tri.triangles())
     {
         indices[k] = t.a;
         indices[k + 1] = t.b;
-        indices[k + 2] = t.c;
-        k += 3;
+
+        if (linify)
+        {
+            indices[k + 2] = t.b;
+            indices[k + 3] = t.c;
+            indices[k + 4] = t.c;
+            indices[k + 5] = t.a;
+            k += 6;
+        }
+        else
+        {
+            indices[k + 2] = t.c;
+            k += 3;
+        }
     }
 
     return indices;
@@ -80,6 +99,7 @@ Renderer::Renderer()
 void Renderer::init_buffers(const Triangulation &tri, int style)
 {
     std::vector<VertexIndice> indices = compute_indices(tri);
+    //    std::vector<VertexIndice> indices = compute_indices(tri, true);
 
     vertex_buffer.create(); // avec les QOpenGLBuffer glGenBuffers, glBind, glBufferData
     vertex_buffer.bind();
@@ -132,7 +152,7 @@ void Renderer::init_GL()
 }
 
 // TODO: texture !!!
-void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
+void Renderer::render(const Triangulation &tri, unsigned int tex, int style, bool lines)
 {
     init_buffers(tri, style);
     GLuint sampler_loc;
@@ -183,7 +203,10 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
 
         // DRAW
         indice_buffer.bind();
+        if (lines)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         gl_fct->glDrawElements(GL_TRIANGLES, tri.triangles().size() * 3, GL_UNSIGNED_INT, nullptr);
+        //        gl_fct->glDrawElements(GL_LINES, tri.triangles().size()*6, GL_UNSIGNED_INT, nullptr);
 
         if (style == COLOR_GRADIENT && first_pass)
         {
@@ -205,7 +228,7 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
                 if (solver.info() != Eigen::Success)
                 {
                     // A est singulière -> couleur constante
-                    std::cout << "A -> LLT Decomposition failed." << std::endl;
+                    //                    std::cout<<"A -> LLT Decomposition failed."<<std::endl;
                     for (int i = 0; i < 3; i++)
                     {
                         for (int j = 0; j < 3; j++)
@@ -223,7 +246,6 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
                 }
                 else
                 {
-//                    std::cout << "in else " << solver.info() << " == " << Eigen::Success << std::endl;
                     Eigen::Vector3<float> rb, gb, bb;
                     for (int i = 0; i < 3; i++)
                     {
