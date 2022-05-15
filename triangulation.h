@@ -33,6 +33,8 @@ public:
     const std::vector<Triangle>& triangles() const;
     const std::vector<std::vector<std::pair<unsigned,unsigned char>>>& trianglesPerVertex() const; //Format : for each vertex, a list of pair<triangleIndex,locInTriangle>
     VertexIndice size() const;
+    bool isEdgeVertex(VertexIndice) const;
+
     void splitTriangle(unsigned triangle);
     void flipCommonEdge(unsigned l_triangle, unsigned r_triangle);
     void deleteVertex(VertexIndice);

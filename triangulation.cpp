@@ -76,6 +76,12 @@ VertexIndice Triangulation::size() const
     return _vertices.size();
 }
 
+
+bool Triangulation::isEdgeVertex(VertexIndice i) const
+{
+    return _vertices[i].x == 0 || _vertices[i].x == 1 || _vertices[i].y == 0 || _vertices[i].y == 1;
+}
+
 void Triangulation::splitTriangle(unsigned triangle)
 {
     removeTrianglePerVertex(triangle);
@@ -138,6 +144,8 @@ void Triangulation::flipCommonEdge(unsigned l_triangle, unsigned r_triangle)
 
 void Triangulation::deleteVertex(VertexIndice to_del)
 {
+    if(isEdgeVertex(to_del)) return;
+
     VertexIndice closest;
     float min_sqr_dist = std::numeric_limits<float>::infinity();
     for(auto [t, pos] : _triangles_per_vertex[to_del])
@@ -159,10 +167,14 @@ void Triangulation::deleteVertex(VertexIndice to_del)
 
 void Triangulation::deleteEdge(VertexIndice from, VertexIndice to)
 {
-    if(from > to) std::swap(from, to);
+    if(isEdgeVertex(to)) std::swap(from, to);
+    if(isEdgeVertex(to)) return; //Cannot delete an... "edge edge"
 
-    _vertices[from].x = (_vertices[from].x + _vertices[to].x) / 2;
-    _vertices[from].y = (_vertices[from].y + _vertices[to].y) / 2;
+    if(!isEdgeVertex(from))
+    {
+        _vertices[from].x = (_vertices[from].x + _vertices[to].x) / 2;
+        _vertices[from].y = (_vertices[from].y + _vertices[to].y) / 2;
+    }
 
     _vertices.erase(_vertices.begin() + to);
     _triangles_per_vertex[from].insert(_triangles_per_vertex[from].end(), std::make_move_iterator(_triangles_per_vertex[to].begin()), std::make_move_iterator(_triangles_per_vertex[to].end()));
