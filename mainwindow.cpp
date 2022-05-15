@@ -36,7 +36,7 @@ bool MainWindow::event(QEvent *event)
     gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     gl_fct->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    Triangulation tri{0};
+    Triangulation tri{5};
     TriangulationOptimizer tri_opt;
     for(int i = 0; i < 1; i ++)
     {

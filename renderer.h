@@ -29,10 +29,9 @@ private:
 
 public:
     Renderer();
-    void render(const Triangulation&, unsigned int, int);
+    void render(const Triangulation&, unsigned int, int, bool = false);
     void init_buffers(const Triangulation&, int);
     void init_GL();
-
     ~Renderer();
 };
 
