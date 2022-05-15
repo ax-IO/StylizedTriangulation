@@ -36,7 +36,14 @@ private:
   int filebar_height = 34;
   int statusbar_height = 27;
 
-
+  QString map;
+  QLabel *mapLabel;
+  QWidget *mapWindow;
+  QWidget *regularWindow;
+  QWidget *splitWindow;
+  QWidget *gradientWindow;
+  QWidget *sobelWindow;
+  QWidget *optimisationWindow;
 
   QSpinBox *splitMaxVarianceSpinBox;
   QSpinBox *splitMaxDistanceSpinBox;
@@ -103,6 +110,7 @@ private slots:
   void fitToWindow();
   void about();
 
+  void initializeMapWindow();
 
   void initializeRegularGridWindow();
   void initializeSplitGridWindow();

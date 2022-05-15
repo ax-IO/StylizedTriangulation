@@ -30,7 +30,13 @@ MainWindow::MainWindow(QWidget *parent)
   imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   imageLabel->setScaledContents(true);
 
-
+  mapLabel = new QLabel;
+  mapWindow= new QWidget;
+  regularWindow = new QWidget;
+  splitWindow = new QWidget;
+  gradientWindow = new QWidget;
+  sobelWindow = new QWidget;
+  optimisationWindow = new QWidget;
 
   createActions();
   resize(QGuiApplication::primaryScreen()->availableSize() * (3.0f / 5.0f));
@@ -69,7 +75,8 @@ bool MainWindow::loadFile(const QString &fileName) {
 
 
 //    resize(image.width(), image.height());
-  resize(image.width(), image.height() + filebar_height + statusbar_height);
+  this->setFixedSize(QSize(image.width(), image.height() + filebar_height + statusbar_height));
+//  resize(image.width(), image.height() + filebar_height + statusbar_height);
 //------------------------------------------------------------------------------------------
   openGL = new GLWidget(fileName, this);
 
@@ -353,10 +360,15 @@ void MainWindow::about() {
 }
 
 //------------------------------------------------------------------------------------------
+void MainWindow::initializeMapWindow(){
+    QVBoxLayout *layout = new QVBoxLayout(mapWindow);
+    layout->addWidget(mapLabel);
+    mapLabel->setPixmap(QPixmap(map));
+    mapWindow->show();
+}
+
 void MainWindow::initializeRegularGridWindow()
 {
-    QWidget *resolutionWindow = new QWidget;
-
     int min = 0;
     int max = 2000;
 
@@ -375,19 +387,16 @@ void MainWindow::initializeRegularGridWindow()
     QPushButton *applyResolutionButton = new QPushButton("Appliquer");
     connect(applyResolutionButton, &QPushButton::released, this, &MainWindow::callChangeResolution);
 
-    QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
+    QVBoxLayout *layout = new QVBoxLayout(regularWindow);
 
     layout->addWidget(resolutionintegerLabel);
     layout->addLayout(hbox);
     layout->addWidget(applyResolutionButton);
-    resolutionWindow->show();
+    regularWindow->show();
 }
 
 void MainWindow::initializeSplitGridWindow()
 {
-    QWidget *resolutionWindow = new QWidget;
-
-
     QLabel *SplitLabel = new QLabel(tr("Génération d'une grille initiale par Split and Merge"));
 
     QLabel *SplitMaxVarianceLabel = new QLabel(tr("Variance Maximale : "));
@@ -414,19 +423,16 @@ void MainWindow::initializeSplitGridWindow()
     QPushButton *applyResolutionButton = new QPushButton("Appliquer");
     connect(applyResolutionButton, &QPushButton::released, this, &MainWindow::callUpdateSplitGrid);
 
-    QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
+    QVBoxLayout *layout = new QVBoxLayout(splitWindow);
 
     layout->addWidget(SplitLabel);
     layout->addLayout(hbox);
     layout->addLayout(hbox2);
     layout->addWidget(applyResolutionButton);
-    resolutionWindow->show();
+    splitWindow->show();
 }
 void MainWindow::initializeGradientGridWindow()
 {
-    QWidget *resolutionWindow = new QWidget;
-
-
     QLabel *gradientintegerLabel = new QLabel(tr("Génération d'une grille initiale par carte de gradient"));
 
     QLabel *GradientSeuilLabel = new QLabel(tr("Seuil Points: "));
@@ -463,20 +469,17 @@ void MainWindow::initializeGradientGridWindow()
     QPushButton *applyResolutionButton = new QPushButton("Appliquer");
     connect(applyResolutionButton, &QPushButton::released, this, &MainWindow::callUpdateGradientGrid);
 
-    QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
+    QVBoxLayout *layout = new QVBoxLayout(gradientWindow);
 
     layout->addWidget(gradientintegerLabel);
     layout->addLayout(hbox);
     layout->addLayout(hbox2);
     layout->addLayout(hbox3);
     layout->addWidget(applyResolutionButton);
-    resolutionWindow->show();
+    gradientWindow->show();
 }
 void MainWindow::initializeSobelGridWindow()
 {
-    QWidget *resolutionWindow = new QWidget;
-
-
     QLabel *sobelintegerLabel = new QLabel(tr("Génération d'une grille initiale par carte de Sobel"));
 
     QLabel *SobelSeuilFiltreLabel = new QLabel(tr("Seuil pour le filtre de Sobel : "));
@@ -523,7 +526,7 @@ void MainWindow::initializeSobelGridWindow()
     QPushButton *applySobelButton = new QPushButton("Appliquer");
     connect(applySobelButton, &QPushButton::released, this, &MainWindow::callUpdateSobelGrid);
 
-    QVBoxLayout *layout = new QVBoxLayout(resolutionWindow);
+    QVBoxLayout *layout = new QVBoxLayout(sobelWindow);
 
     layout->addWidget(sobelintegerLabel);
     layout->addLayout(hbox0);
@@ -531,7 +534,7 @@ void MainWindow::initializeSobelGridWindow()
     layout->addLayout(hbox2);
     layout->addLayout(hbox3);
     layout->addWidget(applySobelButton);
-    resolutionWindow->show();
+    sobelWindow->show();
 }
 
 //------------------------------------------------------------------------------------------
@@ -545,16 +548,22 @@ void MainWindow::callChangeResolution()
 void MainWindow::callUpdateSplitGrid()
 {
     openGL->updateSplitGrid(pgm_filename, splitMaxVarianceSpinBox->value(), splitMaxDistanceSpinBox->value());
+    map = "split.pgm";
+    initializeMapWindow();
     openGL->update();
 }
 void MainWindow::callUpdateGradientGrid()
 {
     openGL->updateGradientGrid(pgm_filename, gradientSeuilSpinBox->value(), gradientMaxPointsSpinBox->value(), gradientPointRateSpinBox->value());
+    map = "gradient.pgm";
+    initializeMapWindow();
     openGL->update();
 }
 void MainWindow::callUpdateSobelGrid()
 {
     openGL->updateSobelGrid(pgm_filename, sobelSeuilFiltreSpinBox->value(),sobelSeuilSpinBox->value(), sobelMaxPointsSpinBox->value(), sobelPointRateSpinBox->value());
+    map = "sobel.pgm";
+    initializeMapWindow();
     openGL->update();
 }
 
@@ -587,7 +596,6 @@ void MainWindow::callOptimizationSplitPass()
 void MainWindow::callOptimizationContinuous()
 {
     qDebug()<<"Optimisation en continu"<< Qt::endl;
-    QWidget *optimisationWindow = new QWidget;
 
 
     QLabel *resolutionintegerLabel = new QLabel(tr("Choisissez votre mode d'optimisation :"));
