@@ -144,7 +144,7 @@ void Triangulation::deleteVertex(VertexIndice to_del)
     {
         for(int i = 0; i < 2; ++i)
         {
-            VertexIndice other = _triangles[t].arr[(pos+i)%3];
+            VertexIndice other = _triangles[t].arr[(pos+i+1)%3];
             float sqr_dist = sqrDist(_vertices[to_del], _vertices[other]);
             if(sqr_dist < min_sqr_dist)
             {
