@@ -33,10 +33,7 @@ int getVertexIndex(std::vector<Vec2> v, Vec2 vertex)
     }
 }
 
-// echantillonageContour retrieves the triangle points after the Sobel threshold has been applied.
 void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, int seuil, int maxPoints, float pointRate){
-    // PointRate defines the default point rate.
-    // Changing this value will modify the triangles sizes.
     int sum, total;
     int x, y, sx, sy   ;
     int row, col, step ;
@@ -70,6 +67,8 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
             }
         }
     }
+
+    qDebug()<< points[0]<< Qt::endl;
 
     int ilen = points.size();
     int tlen = ilen;

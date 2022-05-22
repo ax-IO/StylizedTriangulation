@@ -152,7 +152,7 @@ void Renderer::init_GL()
 }
 
 // TODO: texture !!!
-void Renderer::render(const Triangulation &tri, unsigned int tex, int style, bool lines)
+void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
 {
     init_buffers(tri, style);
     GLuint sampler_loc;
@@ -203,7 +203,7 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style, boo
 
         // DRAW
         indice_buffer.bind();
-        if (lines)
+        if (m_edges)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         gl_fct->glDrawElements(GL_TRIANGLES, tri.triangles().size() * 3, GL_UNSIGNED_INT, nullptr);
         //        gl_fct->glDrawElements(GL_LINES, tri.triangles().size()*6, GL_UNSIGNED_INT, nullptr);

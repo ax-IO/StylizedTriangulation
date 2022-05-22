@@ -78,7 +78,8 @@ void GLWidget::initializeGL() {
   gl_fct = QOpenGLContext::currentContext()->extraFunctions();
   //  initializeOpenGLFunctions();
   float r, g, b;
-  qColorToRGB(Qt::red, r, g, b);
+//  qColorToRGB(Qt::red, r, g, b);
+  qColorToRGB(Qt::white, r, g, b);
   gl_fct->glClearColor(r, g, b, 1.0f);
 
   QImage img(fp);

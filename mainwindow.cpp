@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
   sobelWindow = new QWidget;
   optimisationWindow = new QWidget;
 
+  setWindowIcon(QIcon(":logo.png"));
   createActions();
   resize(QGuiApplication::primaryScreen()->availableSize() * (3.0f / 5.0f));
 }
@@ -59,6 +60,7 @@ bool MainWindow::loadFile(const QString &fileName)
     return false;
   }
 
+
   setImage(newImage);
   //  loadImageToTexture(newImage);
   updateActions();
@@ -77,14 +79,7 @@ bool MainWindow::loadFile(const QString &fileName)
   //  qDebug() <<statusbar_height <<Qt::endl;
 
   //    resize(image.width(), image.height());
-  if (image.width() == image.height())
-  {
-    isImageSquare = true;
-  }
-  else
-  {
-    isImageSquare = false;
-  }
+
   this->setFixedSize(QSize(image.width(), image.height() + filebar_height + statusbar_height));
   //  resize(image.width(), image.height() + filebar_height + statusbar_height);
   //------------------------------------------------------------------------------------------
@@ -270,10 +265,25 @@ void MainWindow::setImage(const QImage &newImage)
 
   //    scrollArea->setVisible(true);
   fitToWindowAct->setEnabled(true);
+
+//  std::cout << image.width() << " "<<image.height() <<std::endl;
+  if (image.width() == image.height())
+  {
+//     std::cout << "carré"<<std::endl;
+    isImageSquare = true;
+  }
+  else
+  {
+//      std::cout << "pas carré"<<std::endl;
+    isImageSquare = false;
+  }
+
   updateActions();
 
   //    if (!fitToWindowAct->isChecked())
   //        imageLabel->adjustSize();
+
+
 }
 
 void MainWindow::scaleImage(double factor) {}
@@ -372,6 +382,7 @@ void MainWindow::about()
 //------------------------------------------------------------------------------------------
 void MainWindow::initializeMapWindow()
 {
+  mapWindow->setAttribute( Qt::WA_QuitOnClose, false );
   QVBoxLayout *layout = new QVBoxLayout(mapWindow);
   layout->addWidget(mapLabel);
   mapLabel->setPixmap(QPixmap(map));
@@ -380,6 +391,7 @@ void MainWindow::initializeMapWindow()
 
 void MainWindow::initializeRegularGridWindow()
 {
+  regularWindow->setAttribute( Qt::WA_QuitOnClose, false );
   int min = 0;
   int max = 2000;
 
@@ -408,6 +420,7 @@ void MainWindow::initializeRegularGridWindow()
 
 void MainWindow::initializeSplitGridWindow()
 {
+  splitWindow->setAttribute( Qt::WA_QuitOnClose, false );
   QLabel *SplitLabel = new QLabel(tr("Génération d'une grille initiale par Split and Merge"));
 
   QLabel *SplitMaxVarianceLabel = new QLabel(tr("Variance Maximale : "));
@@ -443,6 +456,7 @@ void MainWindow::initializeSplitGridWindow()
 }
 void MainWindow::initializeGradientGridWindow()
 {
+  gradientWindow->setAttribute( Qt::WA_QuitOnClose, false );
   QLabel *gradientintegerLabel = new QLabel(tr("Génération d'une grille initiale par carte de gradient"));
 
   QLabel *GradientSeuilLabel = new QLabel(tr("Seuil Points: "));
@@ -489,6 +503,7 @@ void MainWindow::initializeGradientGridWindow()
 }
 void MainWindow::initializeSobelGridWindow()
 {
+  sobelWindow->setAttribute( Qt::WA_QuitOnClose, false );
   QLabel *sobelintegerLabel = new QLabel(tr("Génération d'une grille initiale par carte de Sobel"));
 
   QLabel *SobelSeuilFiltreLabel = new QLabel(tr("Seuil pour le filtre de Sobel : "));
@@ -603,7 +618,8 @@ void MainWindow::callOptimizationSplitPass()
 
 void MainWindow::callOptimizationContinuous()
 {
-  qDebug() << "Optimisation en continu" << Qt::endl;
+//  qDebug() << "Optimisation en continu" << Qt::endl;
+  optimisationWindow->setAttribute( Qt::WA_QuitOnClose, false );
 
   QLabel *resolutionintegerLabel = new QLabel(tr("Choisissez votre mode d'optimisation :"));
 

@@ -51,6 +51,7 @@ Triangulation::Triangulation(std::size_t n)
 Triangulation::Triangulation(std::vector<Vec2> vertices, std::vector<Triangle> triangles)
     :_vertices(vertices), _triangles(triangles)
 {
+    computeTrianglesPerVertex();
 }
 
 Vec2 Triangulation::operator[](VertexIndice i) const

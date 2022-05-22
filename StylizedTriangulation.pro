@@ -45,6 +45,7 @@ DISTFILES += \
     vertex_shader.glsl
 
 RESOURCES += \
+    LogoRessource.qrc \
     RenderingRessources.qrc
 
 RESOURCES += \
