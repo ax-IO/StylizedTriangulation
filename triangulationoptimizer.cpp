@@ -296,3 +296,23 @@ void TriangulationOptimizer::optimizeSplit(Triangulation& triangulation, unsigne
 {
     optimize(triangulation, texture_handle, true);
 }
+
+float TriangulationOptimizer::energySplitThreshold() const
+{
+    return _energy_split_treshold;
+}
+
+void TriangulationOptimizer::energySplitThreshold(float val)
+{
+    _energy_split_treshold = val;
+}
+
+float TriangulationOptimizer::minTriangleArea() const
+{
+    return _min_triangle_area;
+}
+
+void TriangulationOptimizer::minTriangleArea(float val)
+{
+    _min_triangle_area = val;
+}
