@@ -41,8 +41,8 @@ public:
   void renderModeConstant();
   void renderModeGradient();
 
-  void optimizationPass();
-  void optimizationSplitPass();
+  void optimizationPass(float energySplitThreshold, float minTriangleArea);
+  void optimizationSplitPass(float energySplitThreshold, float minTriangleArea);
 protected:
   void initializeGL() override;
   void paintGL() override;

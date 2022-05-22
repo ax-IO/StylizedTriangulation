@@ -194,7 +194,7 @@ void MainWindow::createActions()
   //------------------------------------------------------------------------------------------
   QMenu *optimisationMenu = menuBar()->addMenu(tr("&Optimisation"));
 
-  optimizationContinuousAct = optimisationMenu->addAction(tr("Optimisation en continu"), this, &MainWindow::callOptimizationContinuous);
+  optimizationContinuousAct = optimisationMenu->addAction(tr("Optimisation en continu"), this, &MainWindow::initializeOptimizationContinuousWindow);
   optimizationContinuousAct->setShortcut(tr("Ctrl+c"));
   optimizationContinuousAct->setEnabled(false);
 
@@ -351,7 +351,7 @@ void MainWindow::saveAs()
 
 void MainWindow::zoomIn()
 {
-  qDebug() << "Zoom In" << Qt::endl;
+  // qDebug() << "Zoom In" << Qt::endl;
   openGL->resize(800, 800);
   resize(800, 800 + filebar_height + statusbar_height);
 }
@@ -559,7 +559,72 @@ void MainWindow::initializeSobelGridWindow()
   layout->addWidget(applySobelButton);
   sobelWindow->show();
 }
+void MainWindow::initializeOptimizationContinuousWindow()
+{
+//  qDebug() << "Optimisation en continu" << Qt::endl;
+  optimisationWindow->setAttribute( Qt::WA_QuitOnClose, false );
 
+  QLabel *OptimizationEnergySplitThresholdLabel = new QLabel(tr("Seuil Énergie pour split: "));
+  optimizationEnergySplitThresholdSpinBox = new QDoubleSpinBox();
+  optimizationEnergySplitThresholdSpinBox->setDecimals(3);
+  optimizationEnergySplitThresholdSpinBox->setRange(0.001, 100);
+  optimizationEnergySplitThresholdSpinBox->setSingleStep(0.001);
+  optimizationEnergySplitThresholdSpinBox->setValue(0.20);
+  QHBoxLayout *hbox4 = new QHBoxLayout;
+  hbox4->addWidget(OptimizationEnergySplitThresholdLabel);
+  hbox4->addWidget(optimizationEnergySplitThresholdSpinBox);
+
+  QLabel *OptimizationMinTriangleAreaLabel = new QLabel(tr("Aire du triangle minimum: "));
+  optimizationMinTriangleAreaSpinBox = new QDoubleSpinBox();
+  optimizationMinTriangleAreaSpinBox->setDecimals(4);
+  optimizationMinTriangleAreaSpinBox->setRange(0.0001, 10);
+  optimizationMinTriangleAreaSpinBox->setSingleStep(0.0001);
+  optimizationMinTriangleAreaSpinBox->setValue(0.001);
+  QHBoxLayout *hbox5 = new QHBoxLayout;
+  hbox5->addWidget(OptimizationMinTriangleAreaLabel);
+  hbox5->addWidget(optimizationMinTriangleAreaSpinBox);
+
+  QLabel *resolutionintegerLabel = new QLabel(tr("Choisissez votre mode d'optimisation :"));
+
+  QRadioButton *radioNormal = new QRadioButton(tr("Optimisation normale"));
+  radioNormal->setChecked(true);
+  connect(radioNormal, &QRadioButton::released, this, &MainWindow::callOptimizationTypeChangeToNormal);
+  QRadioButton *radioSplit = new QRadioButton(tr("Optimisation split"));
+  connect(radioSplit, &QRadioButton::released, this, &MainWindow::callOptimizationTypeChangeToSplit);
+  QHBoxLayout *hbox = new QHBoxLayout;
+  hbox->addWidget(radioNormal);
+  hbox->addWidget(radioSplit);
+
+  QLabel *vitesseOptimisationLabel = new QLabel(tr("Vitesse d'optimisation :"));
+  optimizationSpeedSpinBox = new QSpinBox();
+  optimizationSpeedSpinBox->setRange(1, 999);
+  optimizationSpeedSpinBox->setSingleStep(1);
+  optimizationSpeedSpinBox->setValue(800);
+  connect(optimizationSpeedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callChangeOptimizationSpeed);
+  QHBoxLayout *hbox2 = new QHBoxLayout;
+  hbox2->addWidget(vitesseOptimisationLabel);
+  hbox2->addWidget(optimizationSpeedSpinBox);
+
+  optimisationTimer = new QTimer(this);
+  connect(optimisationTimer, &QTimer::timeout, this, &MainWindow::callOptimizationPass);
+  QPushButton *buttonPause = new QPushButton(tr("Pause"));
+  connect(buttonPause, &QPushButton::released, this, &MainWindow::callOptimizationContinuousPause);
+  QPushButton *buttonPlay = new QPushButton(tr("Play"));
+  connect(buttonPlay, &QPushButton::released, this, &MainWindow::callOptimizationContinuousPlay);
+  QHBoxLayout *hbox3 = new QHBoxLayout;
+  hbox3->addWidget(buttonPause);
+  hbox3->addWidget(buttonPlay);
+
+  QVBoxLayout *layout = new QVBoxLayout(optimisationWindow);
+
+  layout->addWidget(resolutionintegerLabel);
+  layout->addLayout(hbox4);
+  layout->addLayout(hbox5);
+  layout->addLayout(hbox);
+  layout->addLayout(hbox2);
+  layout->addLayout(hbox3);
+  optimisationWindow->show();
+}
 //------------------------------------------------------------------------------------------
 void MainWindow::callChangeResolution()
 {
@@ -605,85 +670,54 @@ void MainWindow::callRenderModeGradient()
 //------------------------------------------------------------------------------------------
 void MainWindow::callOptimizationNormalPass()
 {
-  qDebug() << "callOptimizationPass() :";
-  openGL->optimizationPass();
+  // qDebug() << "callOptimizationPass() :";
+  if (optimizationEnergySplitThresholdSpinBox && optimizationMinTriangleAreaSpinBox)
+  {
+      openGL->optimizationPass(optimizationEnergySplitThresholdSpinBox->value(), optimizationMinTriangleAreaSpinBox->value());
+  }
+  else
+  {
+      openGL->optimizationPass(0.5f, 0.001);
+  }
   openGL->update();
 }
 void MainWindow::callOptimizationSplitPass()
 {
-  qDebug() << "callOptimizationSplitPass() :";
-  openGL->optimizationSplitPass();
+  // qDebug() << "callOptimizationSplitPass() :";
+  if (optimizationEnergySplitThresholdSpinBox && optimizationMinTriangleAreaSpinBox)
+  {
+      openGL->optimizationSplitPass(optimizationEnergySplitThresholdSpinBox->value(), optimizationMinTriangleAreaSpinBox->value());
+  }
+  else
+  {
+      openGL->optimizationSplitPass(0.5f, 0.001);
+  }
   openGL->update();
 }
 
-void MainWindow::callOptimizationContinuous()
-{
-//  qDebug() << "Optimisation en continu" << Qt::endl;
-  optimisationWindow->setAttribute( Qt::WA_QuitOnClose, false );
-
-  QLabel *resolutionintegerLabel = new QLabel(tr("Choisissez votre mode d'optimisation :"));
-
-  QRadioButton *radioNormal = new QRadioButton(tr("Optimisation normale"));
-  radioNormal->setChecked(true);
-  connect(radioNormal, &QRadioButton::released, this, &MainWindow::callOptimizationTypeChangeToNormal);
-  QRadioButton *radioSplit = new QRadioButton(tr("Optimisation split"));
-  connect(radioSplit, &QRadioButton::released, this, &MainWindow::callOptimizationTypeChangeToSplit);
-  QHBoxLayout *hbox = new QHBoxLayout;
-  hbox->addWidget(radioNormal);
-  hbox->addWidget(radioSplit);
-
-  QLabel *vitesseOptimisationLabel = new QLabel(tr("Vitesse d'optimisation :"));
-  optimizationSpeedSpinBox = new QSpinBox();
-  optimizationSpeedSpinBox->setRange(1, 999);
-  optimizationSpeedSpinBox->setSingleStep(1);
-  optimizationSpeedSpinBox->setValue(1);
-  connect(optimizationSpeedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callChangeOptimizationSpeed);
-  QHBoxLayout *hbox2 = new QHBoxLayout;
-  hbox2->addWidget(vitesseOptimisationLabel);
-  hbox2->addWidget(optimizationSpeedSpinBox);
-
-  optimisationTimer = new QTimer(this);
-  connect(optimisationTimer, &QTimer::timeout, this, &MainWindow::callOptimizationPass);
-  QPushButton *buttonPause = new QPushButton(tr("Pause"));
-  connect(buttonPause, &QPushButton::released, this, &MainWindow::callOptimizationContinuousPause);
-  QPushButton *buttonPlay = new QPushButton(tr("Play"));
-  connect(buttonPlay, &QPushButton::released, this, &MainWindow::callOptimizationContinuousPlay);
-  QHBoxLayout *hbox3 = new QHBoxLayout;
-  hbox3->addWidget(buttonPause);
-  hbox3->addWidget(buttonPlay);
-
-  QVBoxLayout *layout = new QVBoxLayout(optimisationWindow);
-
-  layout->addWidget(resolutionintegerLabel);
-  layout->addLayout(hbox);
-  layout->addLayout(hbox2);
-  layout->addLayout(hbox3);
-  optimisationWindow->show();
-}
 
 void MainWindow::callOptimizationTypeChangeToNormal()
 {
-  qDebug() << "Change to normal" << Qt::endl;
+  // qDebug() << "Change to normal" << Qt::endl;
   optimisationType = NORMAL;
 }
 void MainWindow::callOptimizationTypeChangeToSplit()
 {
-  qDebug() << "Change to split" << Qt::endl;
+  // qDebug() << "Change to split" << Qt::endl;
   optimisationType = SPLIT;
 }
 void MainWindow::callOptimizationContinuousPause()
 {
-  qDebug() << "Pause" << Qt::endl;
+  // qDebug() << "Pause" << Qt::endl;
 
   optimisationTimer->stop();
 }
 void MainWindow::callOptimizationContinuousPlay()
 {
-  qDebug() << "Play" << Qt::endl;
+  // qDebug() << "Play" << Qt::endl;
 
   optimisationTimer->start(optimisationTimeInterval);
 }
-
 void MainWindow::callOptimizationPass()
 {
   if (optimisationType == NORMAL)
@@ -699,5 +733,5 @@ void MainWindow::callChangeOptimizationSpeed()
 {
   optimisationTimeInterval = (int)1000 - optimizationSpeedSpinBox->value();
 
-  optimisationTimer->start(optimisationTimeInterval);
+//  optimisationTimer->start(optimisationTimeInterval);
 }

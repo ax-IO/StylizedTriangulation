@@ -45,6 +45,7 @@ private:
   QWidget *sobelWindow;
   QWidget *optimisationWindow;
 
+  //--------------------------------------------
   QSpinBox *splitMaxVarianceSpinBox;
   QSpinBox *splitMaxDistanceSpinBox;
 
@@ -58,12 +59,14 @@ private:
   QSpinBox *sobelMaxPointsSpinBox;
   QDoubleSpinBox *sobelPointRateSpinBox;
 
-  QSpinBox *optimizationSpeedSpinBox;
+  QDoubleSpinBox *optimizationEnergySplitThresholdSpinBox;
+  QDoubleSpinBox *optimizationMinTriangleAreaSpinBox;
 
+  QSpinBox *optimizationSpeedSpinBox;
   int optimisationType = NORMAL;
   QTimer *optimisationTimer;
   int optimisationTimeInterval=999;
-
+  //--------------------------------------------
 
   QImage image;
   QImage image_to_save;
@@ -77,6 +80,8 @@ private:
   QLabel *imageLabel;
   GLWidget *openGL;
 
+  //--------------------------------------------
+
   QAction *openAct;
   QAction *saveAsAct;
   QAction *printAct;
@@ -86,13 +91,19 @@ private:
   QAction *normalSizeAct;
   QAction *fitToWindowAct;
 
+  //--------------------------------------------
+
   QAction *renderModeConstantAct;
   QAction *renderModeGradientAct;
+
+  //--------------------------------------------
 
   QAction *showInitializeRegularGridWindowAct;
   QAction *showInitializeSplitGridWindowAct;
   QAction *showInitializeGradientGridWindowAct;
   QAction *showInitializeSobelGridWindowAct;
+
+  //--------------------------------------------
 
   QAction *optimizationPassAct;
   QAction *optimizationSplitPassAct;
@@ -117,6 +128,7 @@ private slots:
   void initializeSplitGridWindow();
   void initializeGradientGridWindow();
   void initializeSobelGridWindow();
+  void initializeOptimizationContinuousWindow();
 
   void callChangeResolution();
   void callUpdateSplitGrid();
@@ -129,7 +141,7 @@ private slots:
   void callOptimizationPass();
   void callOptimizationNormalPass();
   void callOptimizationSplitPass();
-  void callOptimizationContinuous();
+
   void callOptimizationTypeChangeToNormal();
   void callOptimizationTypeChangeToSplit();
   void callOptimizationContinuousPause();

@@ -233,9 +233,9 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
                     {
                         for (int j = 0; j < 3; j++)
                         {
-                            std::cout << A_mat.coeffRef(i, j) << " ";
+//                            std::cout << A_mat.coeffRef(i, j) << " ";
                         }
-                        std::cout << std::endl;
+//                        std::cout << std::endl;
                     }
 
                     to_load.singular = 1;

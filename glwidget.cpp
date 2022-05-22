@@ -4,7 +4,7 @@
 
 GLWidget::GLWidget(QString filepath, QWidget *parent)
     : QOpenGLWidget{parent}, fp(filepath) {
-  qDebug() << "Filepath = " << fp << Qt::endl;
+  // qDebug() << "Filepath = " << fp << Qt::endl;
   }
 
 GLWidget::~GLWidget()
@@ -21,21 +21,21 @@ int GLWidget::getGridResolution()
 //------------------------------------------------------------------------------------------
 void GLWidget::changeRegularGridResolution(int resolution)
 {
-    qDebug() << "New grid resolution :"<<resolution<<"--> ("<<resolution+ 2<< ","<<resolution +2<<")";
+    // qDebug() << "New grid resolution :"<<resolution<<"--> ("<<resolution+ 2<< ","<<resolution +2<<")";
     m_gridResolution = resolution;
     m_tri = Triangulation{m_gridResolution};
 }
 
 void GLWidget::updateSplitGrid(QString filename, double maxVariance,int maxDist)
 {
-    qDebug() << "Update Split Grid : filename = "<<filename<<", maxVariance = "<<maxVariance<<", maxDist = "<<maxDist;
+    // qDebug() << "Update Split Grid : filename = "<<filename<<", maxVariance = "<<maxVariance<<", maxDist = "<<maxDist;
     GenerateGrid *splitGrid = new GenerateGrid(m_width, m_height);
     splitGrid->computeTriangulationSplitAndMerge(filename,  maxVariance, maxDist);
     m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
 }
 void GLWidget::updateGradientGrid(QString filename, int seuil, int maxPoints, float pointRate)
 {
-    qDebug() << "Update Gradient Grid : filename = "<<filename<< " seuil = "<<seuil<<" maxPoints = "<<maxPoints<<" pointRate = "<<pointRate<<Qt::endl;
+    // qDebug() << "Update Gradient Grid : filename = "<<filename<< " seuil = "<<seuil<<" maxPoints = "<<maxPoints<<" pointRate = "<<pointRate<<Qt::endl;
     GenerateGrid *splitGrid = new GenerateGrid(m_width, m_height);
     splitGrid->computeTriangulationGradientMap(filename, seuil, maxPoints, pointRate);
     m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
@@ -43,7 +43,7 @@ void GLWidget::updateGradientGrid(QString filename, int seuil, int maxPoints, fl
 
 void GLWidget::updateSobelGrid(QString filename, int seuilFiltre, int seuil, int maxPoints, float pointRate)
 {
-    qDebug() << "Update Sobel Grid : filename = "<<filename<< " seuilFiltre "<<seuilFiltre<<" seuil = "<<seuil<<" maxPoints = "<<maxPoints<<" pointRate = "<<pointRate<<Qt::endl;
+    // qDebug() << "Update Sobel Grid : filename = "<<filename<< " seuilFiltre "<<seuilFiltre<<" seuil = "<<seuil<<" maxPoints = "<<maxPoints<<" pointRate = "<<pointRate<<Qt::endl;
     GenerateGrid *splitGrid = new GenerateGrid(m_width, m_height);
     splitGrid->computeTriangulationSobelMap(filename, seuilFiltre, seuil, maxPoints, pointRate);
     m_tri = Triangulation(splitGrid->getVertices(), splitGrid->getTriangles());
@@ -51,30 +51,34 @@ void GLWidget::updateSobelGrid(QString filename, int seuilFiltre, int seuil, int
 //------------------------------------------------------------------------------------------
 void GLWidget::renderModeConstant()
 {
-    qDebug() << "Render Mode Changed : Constant";
+    // qDebug() << "Render Mode Changed : Constant";
     m_renderMode = COLOR_CONSTANT;
 }
 
 void GLWidget::renderModeGradient()
 {
-    qDebug() << "Render Mode Changed : Gradient";
+    // qDebug() << "Render Mode Changed : Gradient";
     m_renderMode = COLOR_GRADIENT;
 }
 //------------------------------------------------------------------------------------------
-void GLWidget::optimizationPass()
+void GLWidget::optimizationPass(float energySplitThreshold, float minTriangleArea)
 {
-    qDebug() << "Passe d'optimisation";
+//    qDebug() << "Passe d'optimisation";
+    m_tri_opt->energySplitThreshold(energySplitThreshold);
+    m_tri_opt->minTriangleArea(minTriangleArea);
     m_tri_opt->optimize(m_tri, tex);
 }
-void GLWidget::optimizationSplitPass()
+void GLWidget::optimizationSplitPass(float energySplitThreshold, float minTriangleArea)
 {
-    qDebug() << "Passe d'optimisation Split";
+//    qDebug() << "Passe d'optimisation Split";
+    m_tri_opt->energySplitThreshold(energySplitThreshold);
+    m_tri_opt->minTriangleArea(minTriangleArea);
     m_tri_opt->optimizeSplit(m_tri, tex);
 }
 //------------------------------------------------------------------------------------------
 
 void GLWidget::initializeGL() {
-  qDebug() << "initializeGL() :";
+  // qDebug() << "initializeGL() :";
   gl_fct = QOpenGLContext::currentContext()->extraFunctions();
   //  initializeOpenGLFunctions();
   float r, g, b;
@@ -109,7 +113,7 @@ void GLWidget::initializeGL() {
 }
 
 void GLWidget::paintGL() {
-    qDebug() << "paintGL() :";
+    // qDebug() << "paintGL() :";
   gl_fct->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Créer un framebuffer
@@ -123,7 +127,7 @@ void GLWidget::paintGL() {
 }
 
 void GLWidget::resizeGL(int w, int h) {
-  qDebug() << "resizeGL(" << w << "," << h << ") :";
+  // qDebug() << "resizeGL(" << w << "," << h << ") :";
 //  gl_fct->glViewport(0, 0, w, h);
   //  glMatrixMode(GL_PROJECTION);
   //  glLoadIdentity();
@@ -176,11 +180,11 @@ void GLWidget::mousePressEvent(QMouseEvent *event) {
   point = event->pos();
   Vec2 texturepoint = coord_imageToTexture(point, m_width, m_height);
   int index = coord_textureToIndex(texturepoint, m_tri);
-  qDebug() << "(" << point.x() << "," << point.y() << ") --> ("
-           << texturepoint.x << "," << texturepoint.y
-           << ") correspond au sommet" << index << "("
-           << m_tri.vertices()[index].x << "," << m_tri.vertices()[index].y
-           << ")" << Qt::endl;
+  // qDebug() << "(" << point.x() << "," << point.y() << ") --> ("
+//           << texturepoint.x << "," << texturepoint.y
+//           << ") correspond au sommet" << index << "("
+//           << m_tri.vertices()[index].x << "," << m_tri.vertices()[index].y
+//           << ")" << Qt::endl;
 
   if (!(event->buttons() & Qt::RightButton))
       m_tri.deleteVertex(index);
