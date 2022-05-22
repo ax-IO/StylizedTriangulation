@@ -278,13 +278,14 @@ void TriangulationOptimizer::optimize(Triangulation& triangulation, unsigned tex
         total_count += error_data[t*13].count;
     }
 
-    std::vector<unsigned> tris_to_del;
     for(unsigned t = 0; t < tri_count; ++t)
     {
         if(split && (float)error_data[t*13].error_total / total_count >= _energy_split_treshold) triangulation.splitTriangle(t);
-        else if(triangulation.triangleArea(t) < _min_triangle_area) tris_to_del.push_back(t);
     }
-    for(auto it = tris_to_del.rbegin(), e = tris_to_del.rend(); it != e; ++it) triangulation.deleteTriangle(*it);
+    for(unsigned t = 0; t < triangulation.triangles().size(); ++t)
+    {
+        if(triangulation.triangleArea(t) < _min_triangle_area) triangulation.deleteTriangle(t);
+    }
 
     for(unsigned t = 0; t < triangulation.triangles().size(); ++t)
     {
