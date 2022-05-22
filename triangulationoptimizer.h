@@ -16,6 +16,11 @@ public:
     void optimize (Triangulation&, unsigned int, bool split=false);
     void optimizeSplit (Triangulation&, unsigned int);
 
+    float energySplitThreshold() const;
+    void energySplitThreshold(float val);
+    float minTriangleArea() const;
+    void minTriangleArea(float val);
+
 private:
     std::vector<ErrorData> computeErrors(const Triangulation&, int, int);
 
