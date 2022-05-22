@@ -180,7 +180,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event) {
   point = event->pos();
   Vec2 texturepoint = coord_imageToTexture(point, m_width, m_height);
   int index = coord_textureToIndex(texturepoint, m_tri);
-  // qDebug() << "(" << point.x() << "," << point.y() << ") --> ("
+//   qDebug() << "(" << point.x() << "," << point.y() << ") --> ("
 //           << texturepoint.x << "," << texturepoint.y
 //           << ") correspond au sommet" << index << "("
 //           << m_tri.vertices()[index].x << "," << m_tri.vertices()[index].y
@@ -188,6 +188,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event) {
 
   if (!(event->buttons() & Qt::RightButton))
       m_tri.deleteVertex(index);
+
 //  if (!(event->buttons() & Qt::LeftButton))
 //      m_tri.deleteTriangle(index);
   this->update();

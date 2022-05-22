@@ -430,7 +430,7 @@ void MainWindow::initializeGradientGridWindow()
 
   QLabel *GradientSeuilLabel = new QLabel(tr("Seuil Points: "));
   gradientSeuilSpinBox = new QSpinBox();
-  gradientSeuilSpinBox->setRange(1, 10000);
+  gradientSeuilSpinBox->setRange(0, 10000);
   gradientSeuilSpinBox->setSingleStep(1);
   gradientSeuilSpinBox->setValue(2);
   //    connect(gradientSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
@@ -489,7 +489,7 @@ void MainWindow::initializeSobelGridWindow()
   sobelSeuilSpinBox = new QSpinBox();
   sobelSeuilSpinBox->setRange(1, 10000);
   sobelSeuilSpinBox->setSingleStep(1);
-  sobelSeuilSpinBox->setValue(2);
+  sobelSeuilSpinBox->setValue(128);
   //    connect(sobelSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
   QHBoxLayout *hbox = new QHBoxLayout;
   hbox->addWidget(SobelSeuilLabel);
@@ -593,6 +593,7 @@ void MainWindow::initializeOptimizationContinuousWindow()
   layout->addLayout(hbox2);
   layout->addLayout(hbox3);
   optimisationWindow->show();
+  isOptimisationWindowInitialized =true;
 }
 //------------------------------------------------------------------------------------------
 void MainWindow::callChangeResolution()
@@ -639,21 +640,21 @@ void MainWindow::callRenderModeGradient()
 //------------------------------------------------------------------------------------------
 void MainWindow::callOptimizationNormalPass()
 {
-  // qDebug() << "callOptimizationPass() :";
-  if (optimizationEnergySplitThresholdSpinBox && optimizationMinTriangleAreaSpinBox)
+//   qDebug() << "callOptimizationPass() :";
+  if (isOptimisationWindowInitialized)
   {
       openGL->optimizationPass(optimizationEnergySplitThresholdSpinBox->value(), optimizationMinTriangleAreaSpinBox->value());
   }
   else
   {
-      openGL->optimizationPass(0.5f, 0.001);
+      openGL->optimizationPass(0.5f, 0.001f);
   }
   openGL->update();
 }
 void MainWindow::callOptimizationSplitPass()
 {
   // qDebug() << "callOptimizationSplitPass() :";
-  if (optimizationEnergySplitThresholdSpinBox && optimizationMinTriangleAreaSpinBox)
+  if (isOptimisationWindowInitialized)
   {
       openGL->optimizationSplitPass(optimizationEnergySplitThresholdSpinBox->value(), optimizationMinTriangleAreaSpinBox->value());
   }

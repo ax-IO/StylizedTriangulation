@@ -44,6 +44,8 @@ private:
   QWidget *gradientWindow;
   QWidget *sobelWindow;
   QWidget *optimisationWindow;
+  bool isOptimisationWindowInitialized = false;
+
 
   //--------------------------------------------
   QSpinBox *splitMaxVarianceSpinBox;

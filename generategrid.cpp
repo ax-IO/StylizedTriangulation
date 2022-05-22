@@ -38,6 +38,7 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
     int x, y, sx, sy   ;
     int row, col, step ;
     std::vector<Vec2> points;
+    m_vertices.clear();
 
 
     for (y = 0; y < m_height; y++) {
@@ -53,22 +54,33 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
                     for (col = -1; col <= 1; col++) {
                         sx = x + col;
                         if (sx >= 0 && sx < m_width) {
-                            sum += (int)edgeMap[(sx+step)*4];
+                            sum += (int)edgeMap[(sx+step)];
                             total++;
                         }
                     }
                 }
             }
             if (total > 0) {
-                sum /= total;
+                sum = std::ceil((double)sum/(double)total);
             }
-            if (sum > seuil) {
-                points.push_back({(float)x, (float)y});
+            if (sum >= seuil) {
+                points.push_back({(float)x, (float)m_height -(float)y});
             }
         }
     }
 
-    qDebug()<< points[0]<< Qt::endl;
+//    for (y = 0; y < m_height; y++) {
+//        for (x = 0; x < m_width; x++) {
+//            sum = (int)edgeMap[(y*m_width+x)];
+//            if (sum >= seuil) {
+//                points.push_back({(float)x, (float)m_height -(float)y});
+//            }
+//           }
+//        }
+
+//   qDebug() <<points.size() ;
+
+
 
     int ilen = points.size();
     int tlen = ilen;
@@ -80,23 +92,23 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
 
 
     for (int i = 0; i < limit && i < ilen; i++) {
-        // j = int(float64(tlen) * rand.Float64())
         //random float number between 0 and 1
         float rand_number = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
         int j = (int)((float)(tlen) * rand_number);
 
-    //            m_vertices.push_back(points[j]);
         Vec2 point={points[j].x/(float)m_height, points[j].y/(float)m_width};
-
 
         m_vertices.push_back(point);
 
-//        qDebug()<<"point ="<<point<< Qt::endl;
         // Remove points
-        // points = append(points[:j], points[j+1:]...)
         std::erase(points, points[j]);
         tlen--;
     }
+//        for (int i = 0; i < ilen; i++) {
+//            Vec2 point={points[i].x/(float)m_height, points[i].y/(float)m_width};
+//            m_vertices.push_back(point);
+//        }
+
     // Ajout des 4 coins
     if (getVertexIndex(m_vertices, {0.0f, 0.0f}) == -1){
         m_vertices.push_back({0.0f, 0.0f});
@@ -141,17 +153,18 @@ void GenerateGrid::computeTriangulationGradientMap(QString filename, int seuil, 
     auto [img, nH, nW] = charger<OCTET>(sringFilename);
     std::vector<unsigned char> copy = img;
 
+    qDebug() << nH << nW;
     float h, v;
     unsigned int G;
     for (int i = 0; i < nH; i++)
     {
         for (int j = 0; j < nW; j++)
         {
-            if (i == nH - 1)
-                h = 0;
-            if (j == nW - 1)
-                v = 0;
-            if (i < nH - 1 && j < nW - 1)
+            if (i == nH - 1 || j == nW - 1)
+            {
+                copy[i * nW + j] = (unsigned int)0;
+            }
+            else
             {
                 h = (float)img[i * nW + (j + 1)] - (float)img[i * nW + j];
                 // h = (float)img(i, j + 1) - (float)img(i, j);
@@ -179,92 +192,136 @@ void GenerateGrid::computeTriangulationSobelMap(QString filename, int seuilFiltr
     auto [img, nH, nW] = charger<OCTET>(sringFilename);
 //    std::vector<unsigned char> copy = img;
     std::vector<unsigned char> copy(m_width*m_height);
+    for (int i = 0 ; i < copy.size(); i++)
+    {
+        copy[i]=0;
+    }
+    unsigned int pixel_x;
+    unsigned int pixel_y;
 
-    int sobelKernelX [3][3] ={
-            {-1, 0, 1},
-            {-2, 0, 2},
-            {-1, 0, 1},
-        };
+        float sobel_x[3][3] =
+        { { -1, 0, 1 },
+          { -2, 0, 2 },
+          { -1, 0, 1 } };
 
-    int sobelKernelY [3][3] ={
-            {-1, -2, -1},
-            {0, 0, 0},
-            {1, 2, 1},
-        };
+        float sobel_y[3][3] =
+        { { -1, -2, -1 },
+          { 0,  0,  0 },
+          { 1,  2,  1 } };
 
+        for (int x=1; x < m_width-1; x++)
+        {
+            for (int y=1; y < m_height-1; y++)
+            {
 
-    int sumX, sumY;
+                pixel_x = (sobel_x[0][0] * img[m_width * (y-1) + (x-1)])
+                        + (sobel_x[0][1] * img[m_width * (y-1) +  x   ])
+                        + (sobel_x[0][2] * img[m_width * (y-1) + (x+1)])
+                        + (sobel_x[1][0] * img[m_width *  y    + (x-1)])
+                        + (sobel_x[1][1] * img[m_width *  y    +  x   ])
+                        + (sobel_x[1][2] * img[m_width *  y    + (x+1)])
+                        + (sobel_x[2][0] * img[m_width * (y+1) + (x-1)])
+                        + (sobel_x[2][1] * img[m_width * (y+1) +  x   ])
+                        + (sobel_x[2][2] * img[m_width * (y+1) + (x+1)]);
 
-    // Get 3x3 window of pixels because image data given is just a 1D array of pixels
-    // 3 = len(sobelKernelX)
-    int maxPixelOffset = m_width*2 + 3 - 1;
+                pixel_y = (sobel_y[0][0] * img[m_width * (y-1) + (x-1)])
+                        + (sobel_y[0][1] * img[m_width * (y-1) +  x   ])
+                        + (sobel_y[0][2] * img[m_width * (y-1) + (x+1)])
+                        + (sobel_y[1][0] * img[m_width *  y    + (x-1)])
+                        + (sobel_y[1][1] * img[m_width *  y    +  x   ])
+                        + (sobel_y[1][2] * img[m_width *  y    + (x+1)])
+                        + (sobel_y[2][0] * img[m_width * (y+1) + (x-1)])
+                        + (sobel_y[2][1] * img[m_width * (y+1) +  x   ])
+                        + (sobel_y[2][2] * img[m_width * (y+1) + (x+1)]);
 
-    // len(img) = (m_width*m_height)
-    int length = (m_width*m_height)*4 - maxPixelOffset;
-    std::vector<unsigned int> magnitudes;
-    magnitudes.resize(length);
-//    uint magnitudes[length];
+                unsigned int val = (unsigned int)sqrt((pixel_x * pixel_x) + (pixel_y * pixel_y));
 
-    for (int i = 0; i < length; i++) {
-        // Sum each pixel with the kernel value
-        sumX = 0;
-        sumY = 0;
-
-        for (int x = 0; x < 3; x++) {
-            for (int y = 0; y < 3; y++) {
-                int idx = i + (m_width * y) + x;
-                if  (idx < (m_width*m_height)) {
-                    int r = img[i+(m_width*y)+x];
-                    sumX += r * sobelKernelX[y][x];
-                    sumY += r * sobelKernelY[y][x];
-                }
+                if(val < 0) val = 0;
+                if(val > 255) val = 255;
+                if ((int)val <= seuilFiltre) val = 0;
+                copy[m_height * y + x] = val;
             }
         }
-        float magnitude = std::sqrt((float)(sumX*sumX) + (float)(sumY*sumY));
-        // Check for pixel color boundaries
-        if (magnitude < 0) {
-            magnitude = 0;
-        } else if (magnitude > 255) {
-            magnitude = 255;
-        }
 
-        // Set magnitude to 0 if doesn't exceed threshold, else set to magnitude
-        if (magnitude > seuilFiltre) {
-            magnitudes[i] = (unsigned int)magnitude;
-        } else {
-            magnitudes[i] = 0;
-        }
-    }
+////row, col - coordinates of central pixel for calculation
+//for (int row = 1; row < m_height - 1; row++) {
+//    for (int col = 1; col < m_width - 1; col++) {
+//        double magX = 0.0; // this is your magnitude
 
-    int dataLength = m_width * m_height * 4;
-//    int edges [dataLength] ;
-    std::vector<int> edges;
-    edges.resize(dataLength);
+//        for (int a = 0; a < 3; a++) {
+//            for (int b = 0; b < 3; b++) {
+//                magX += img[(row - 1 + a) * Wp + col - 1 + b] * sobel_x[a][b];
+//            }
+//        }
+//        resultImg[row * m_width  + col] = magX;
+//   }
+//}
 
-    // Apply the kernel values
-    for (int i = 0; i < dataLength; i++){
-        edges[i] = 0;
-        if (i%4 != 0) {
-            int m = magnitudes[i/4];
-            if (m != 0) {
-                edges[i-1] = m;
-            }
-        }
-//        std::cout << edges[i] << std::endl;
-    }
 
-    // Generate the new image with the sobel filter applied
-//    std::cout << edges.size() << std::endl;
+//    int sumX, sumY;
 
-    int i =0;
-    for (size_t idx = 0; idx < edges.size(); idx += 4) {
-//        std::cout << edges[idx] << std::endl;
-        copy[i] = (unsigned int)edges[idx];
-        i++;
-//        copy[idx+1] = (unsigned int)edges[idx+1];
-//        copy[idx+2] = (unsigned int)edges[idx+2];
-//        copy[idx+3] = 255;
-    }
+//    // Get 3x3 window of pixels because image data given is just a 1D array of pixels
+//    // 3 = len(sobelKernelX)
+//    int maxPixelOffset = m_width*2 + 3 - 1;
+
+//    // len(img) = (m_width*m_height)
+//    int length = (m_width*m_height)*4 - maxPixelOffset;
+//    std::vector<unsigned int> magnitudes;
+//    magnitudes.resize(length);
+////    uint magnitudes[length];
+
+//    for (int i = 0; i < length; i++) {
+//        // Sum each pixel with the kernel value
+//        sumX = 0;
+//        sumY = 0;
+
+//        for (int x = 0; x < 3; x++) {
+//            for (int y = 0; y < 3; y++) {
+//                int idx = i + (m_width * y) + x;
+//                if  (idx < (m_width*m_height)) {
+//                    int r = img[i+(m_width*y)+x];
+//                    sumX += r * sobelKernelX[y][x];
+//                    sumY += r * sobelKernelY[y][x];
+//                }
+//            }
+//        }
+//        float magnitude = std::sqrt((float)(sumX*sumX) + (float)(sumY*sumY));
+//        // Check for pixel color boundaries
+//        if (magnitude < 0) {
+//            magnitude = 0;
+//        } else if (magnitude > 255) {
+//            magnitude = 255;
+//        }
+
+//        // Set magnitude to 0 if doesn't exceed threshold, else set to magnitude
+//        if (magnitude > seuilFiltre) {
+//            magnitudes[i] = (unsigned int)magnitude;
+//        } else {
+//            magnitudes[i] = 0;
+//        }
+//    }
+
+//    int dataLength = m_width * m_height;
+////    int edges [dataLength] ;
+//    std::vector<int> edges;
+//    edges.resize(dataLength);
+
+//    // Apply the kernel values
+//    for (int i = 0; i < dataLength; i++){
+//        edges[i] = 0;
+//        int m = magnitudes[i];
+//        if (m != 0) {
+//            edges[i-1] = m;
+//        }
+////        std::cout << edges[i] << std::endl;
+//    }
+
+//    // Generate the new image with the sobel filter applied
+////    std::cout << edges.size() << std::endl;
+
+//    for (size_t i = 0; i < edges.size(); i ++) {
+//        copy[i] = (unsigned int)edges[i];
+//    }
 
     sauvegarder("sobel.pgm", copy, nH, nW);
     //----------------------------------------
