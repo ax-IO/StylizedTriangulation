@@ -86,10 +86,6 @@ private:
   QAction *saveAsAct;
   QAction *printAct;
   QAction *copyAct;
-  QAction *zoomInAct;
-  QAction *zoomOutAct;
-  QAction *normalSizeAct;
-  QAction *fitToWindowAct;
 
   //--------------------------------------------
 

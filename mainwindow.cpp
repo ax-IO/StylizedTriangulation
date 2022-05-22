@@ -132,32 +132,6 @@ void MainWindow::createActions()
   QAction *exitAct = fileMenu->addAction(tr("&Quitter"), this, &QWidget::close);
   exitAct->setShortcut(tr("Ctrl+Q"));
 
-  //------------------------------------------------------------------------------------------
-
-  QMenu *viewMenu = menuBar()->addMenu(tr("A&ffichage"));
-
-  zoomInAct =
-      viewMenu->addAction(tr("Zoom A&vant (25%)"), this, &MainWindow::zoomIn);
-  zoomInAct->setShortcut(QKeySequence::ZoomIn);
-  zoomInAct->setEnabled(false);
-
-  zoomOutAct = viewMenu->addAction(tr("Zoom A&rrière (25%)"), this,
-                                   &MainWindow::zoomOut);
-  zoomOutAct->setShortcut(QKeySequence::ZoomOut);
-  zoomOutAct->setEnabled(false);
-
-  normalSizeAct =
-      viewMenu->addAction(tr("&Taille réelle"), this, &MainWindow::normalSize);
-  normalSizeAct->setShortcut(tr("Ctrl+="));
-  normalSizeAct->setEnabled(false);
-
-  viewMenu->addSeparator();
-
-  fitToWindowAct = viewMenu->addAction(tr("A&juster à la fenêtre"), this,
-                                       &MainWindow::fitToWindow);
-  fitToWindowAct->setEnabled(false);
-  fitToWindowAct->setCheckable(true);
-  fitToWindowAct->setShortcut(tr("Ctrl+F"));
 
   //------------------------------------------------------------------------------------------
   QMenu *renderMenu = menuBar()->addMenu(tr("&Modes de rendu"));
@@ -219,9 +193,6 @@ void MainWindow::createActions()
 void MainWindow::updateActions()
 {
   saveAsAct->setEnabled(!image.isNull());
-  zoomInAct->setEnabled(!fitToWindowAct->isChecked());
-  zoomOutAct->setEnabled(!fitToWindowAct->isChecked());
-  normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
 
   renderModeConstantAct->setEnabled(!image.isNull());
   renderModeGradientAct->setEnabled(!image.isNull());
@@ -264,8 +235,6 @@ void MainWindow::setImage(const QImage &newImage)
   scaleFactor = 1.0;
 
   //    scrollArea->setVisible(true);
-  fitToWindowAct->setEnabled(true);
-
 //  std::cout << image.width() << " "<<image.height() <<std::endl;
   if (image.width() == image.height())
   {
