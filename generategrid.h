@@ -28,8 +28,6 @@ public:
 private:
     std::vector<Vec2> m_vertices;
     std::vector<Triangle> m_triangles;
-//    double m_splitAndMergeMaxVariance;
-//    int m_splitAndMergeMaxDist;
     int m_width;
     int m_height;
 

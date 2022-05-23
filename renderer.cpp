@@ -99,7 +99,6 @@ Renderer::Renderer()
 void Renderer::init_buffers(const Triangulation &tri, int style)
 {
     std::vector<VertexIndice> indices = compute_indices(tri);
-    //    std::vector<VertexIndice> indices = compute_indices(tri, true);
 
     vertex_buffer.create(); // avec les QOpenGLBuffer glGenBuffers, glBind, glBufferData
     vertex_buffer.bind();
@@ -151,7 +150,6 @@ void Renderer::init_GL()
     }
 }
 
-// TODO: texture !!!
 void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
 {
     init_buffers(tri, style);
@@ -164,7 +162,6 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
     gl_fct->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
     gl_fct->glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
-    //    std::cout<<"texture w, h : "<<w<< ", "<<h<<std::endl;
     gl_fct->glViewport(0, 0, w, h);
     gl_fct->glClear(GL_COLOR_BUFFER_BIT);
     gl_fct->glEnableVertexAttribArray(0);
@@ -206,7 +203,6 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
         if (m_edges)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         gl_fct->glDrawElements(GL_TRIANGLES, tri.triangles().size() * 3, GL_UNSIGNED_INT, nullptr);
-        //        gl_fct->glDrawElements(GL_LINES, tri.triangles().size()*6, GL_UNSIGNED_INT, nullptr);
 
         if (style == COLOR_GRADIENT && first_pass)
         {
@@ -295,12 +291,6 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
         program[i].release();
     }
 
-    //    int tri_id = 0;
-    //    for(Triangle_frag tf : computed)
-    //    {
-    //        std::cout<<tri_id<<" :TO AFFECT: R "<<tf.r/float (255.*tf.size)<<", G "<<tf.g/float (255.*tf.size)<<", B "<<tf.b/float (255.*tf.size)<<std::endl;
-    //        tri_id ++;
-    //    }
     // CLEAN
     //    glDisableClientState(GL_VERTEX_ARRAY);
     vertex_buffer.release();

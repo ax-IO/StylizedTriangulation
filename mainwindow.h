@@ -107,8 +107,6 @@ private:
   QAction *optimizationSplitPassAct;
   QAction *optimizationContinuousAct;
 
-
-
   GLuint texture;
 
 private slots:

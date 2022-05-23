@@ -16,19 +16,15 @@ QDebug operator<< (QDebug d, const Triangle &triangle) {
     return d;
 }
 
-// Function to print the
-// index of an element
 int getVertexIndex(std::vector<Vec2> v, Vec2 vertex)
 {
     auto it = find(v.begin(), v.end(), vertex);
 
-    // If element was found
     if (it != v.end())
     {
         return it - v.begin() ;
     }
     else {
-        // If the element is not present in the vector
         return -1;
     }
 }
@@ -41,46 +37,42 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
     m_vertices.clear();
 
 
-    for (y = 0; y < m_height; y++) {
-        for (x = 0; x < m_width; x++) {
-            sum = 0;
-            total =0;
-
-            for (row = -1; row <= 1; row++) {
-                sy = y + row;
-                step = sy * m_width;
-
-                if (sy >= 0 && sy < m_height) {
-                    for (col = -1; col <= 1; col++) {
-                        sx = x + col;
-                        if (sx >= 0 && sx < m_width) {
-                            sum += (int)edgeMap[(sx+step)];
-                            total++;
-                        }
-                    }
-                }
-            }
-            if (total > 0) {
-                sum = std::ceil((double)sum/(double)total);
-            }
-            if (sum >= seuil) {
-                points.push_back({(float)x, (float)m_height -(float)y});
-            }
-        }
-    }
-
 //    for (y = 0; y < m_height; y++) {
 //        for (x = 0; x < m_width; x++) {
-//            sum = (int)edgeMap[(y*m_width+x)];
+//            sum = 0;
+//            total =0;
+
+//            for (row = -1; row <= 1; row++) {
+//                sy = y + row;
+//                step = sy * m_width;
+
+//                if (sy >= 0 && sy < m_height) {
+//                    for (col = -1; col <= 1; col++) {
+//                        sx = x + col;
+//                        if (sx >= 0 && sx < m_width) {
+//                            sum += (int)edgeMap[(sx+step)];
+//                            total++;
+//                        }
+//                    }
+//                }
+//            }
+//            if (total > 0) {
+//                sum = std::ceil((double)sum/(double)total);
+//            }
 //            if (sum >= seuil) {
 //                points.push_back({(float)x, (float)m_height -(float)y});
 //            }
-//           }
 //        }
+//    }
 
-//   qDebug() <<points.size() ;
-
-
+        for (y = 0; y < m_height; y++) {
+            for (x = 0; x < m_width; x++) {
+                sum = (int)edgeMap[(y*m_width+x)];
+                if (sum >= seuil) {
+                    points.push_back({(float)x, (float)m_height -(float)y});
+                }
+               }
+            }
 
     int ilen = points.size();
     int tlen = ilen;
@@ -92,22 +84,18 @@ void GenerateGrid::echantillonageContour(std::vector<unsigned char>& edgeMap, in
 
 
     for (int i = 0; i < limit && i < ilen; i++) {
-        //random float number between 0 and 1
+        // Random float number between 0 and 1
         float rand_number = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
         int j = (int)((float)(tlen) * rand_number);
 
-        Vec2 point={points[j].x/(float)m_height, points[j].y/(float)m_width};
+        Vec2 point={points[j].x/(float)m_width, points[j].y/(float)m_height};
 
         m_vertices.push_back(point);
 
-        // Remove points
+        // Retire les points
         std::erase(points, points[j]);
         tlen--;
     }
-//        for (int i = 0; i < ilen; i++) {
-//            Vec2 point={points[i].x/(float)m_height, points[i].y/(float)m_width};
-//            m_vertices.push_back(point);
-//        }
 
     // Ajout des 4 coins
     if (getVertexIndex(m_vertices, {0.0f, 0.0f}) == -1){
@@ -167,10 +155,7 @@ void GenerateGrid::computeTriangulationGradientMap(QString filename, int seuil, 
             else
             {
                 h = (float)img[i * nW + (j + 1)] - (float)img[i * nW + j];
-                // h = (float)img(i, j + 1) - (float)img(i, j);
                 v = (float)img[(i + 1) * nW + j] - (float)img[i * nW + j];
-                // v = (float)img(i + 1, j) - (float)img(i, j);
-
                 G = (unsigned int)std::min(255.0f, std::sqrt(h * h + v * v));
                 copy[i * nW + j] = G;
             }
@@ -180,7 +165,6 @@ void GenerateGrid::computeTriangulationGradientMap(QString filename, int seuil, 
 
     //Récupérer vertices
     echantillonageContour(copy, seuil, maxPoints, pointRate);
-    // qDebug()<<"m_vertices.size() ="<<m_vertices.size()<< Qt::endl;
 
     //Delaunay Triangulation
     delaunayTriangulation();
@@ -190,7 +174,6 @@ void GenerateGrid::computeTriangulationSobelMap(QString filename, int seuilFiltr
     // Génération carte de Sobel
     std::string sringFilename = filename.toStdString();
     auto [img, nH, nW] = charger<OCTET>(sringFilename);
-//    std::vector<unsigned char> copy = img;
     std::vector<unsigned char> copy(m_width*m_height);
     for (int i = 0 ; i < copy.size(); i++)
     {
@@ -239,96 +222,14 @@ void GenerateGrid::computeTriangulationSobelMap(QString filename, int seuilFiltr
                 if(val < 0) val = 0;
                 if(val > 255) val = 255;
                 if ((int)val <= seuilFiltre) val = 0;
-                copy[m_height * y + x] = val;
+                copy[m_width * y + x] = val;
             }
         }
-
-////row, col - coordinates of central pixel for calculation
-//for (int row = 1; row < m_height - 1; row++) {
-//    for (int col = 1; col < m_width - 1; col++) {
-//        double magX = 0.0; // this is your magnitude
-
-//        for (int a = 0; a < 3; a++) {
-//            for (int b = 0; b < 3; b++) {
-//                magX += img[(row - 1 + a) * Wp + col - 1 + b] * sobel_x[a][b];
-//            }
-//        }
-//        resultImg[row * m_width  + col] = magX;
-//   }
-//}
-
-
-//    int sumX, sumY;
-
-//    // Get 3x3 window of pixels because image data given is just a 1D array of pixels
-//    // 3 = len(sobelKernelX)
-//    int maxPixelOffset = m_width*2 + 3 - 1;
-
-//    // len(img) = (m_width*m_height)
-//    int length = (m_width*m_height)*4 - maxPixelOffset;
-//    std::vector<unsigned int> magnitudes;
-//    magnitudes.resize(length);
-////    uint magnitudes[length];
-
-//    for (int i = 0; i < length; i++) {
-//        // Sum each pixel with the kernel value
-//        sumX = 0;
-//        sumY = 0;
-
-//        for (int x = 0; x < 3; x++) {
-//            for (int y = 0; y < 3; y++) {
-//                int idx = i + (m_width * y) + x;
-//                if  (idx < (m_width*m_height)) {
-//                    int r = img[i+(m_width*y)+x];
-//                    sumX += r * sobelKernelX[y][x];
-//                    sumY += r * sobelKernelY[y][x];
-//                }
-//            }
-//        }
-//        float magnitude = std::sqrt((float)(sumX*sumX) + (float)(sumY*sumY));
-//        // Check for pixel color boundaries
-//        if (magnitude < 0) {
-//            magnitude = 0;
-//        } else if (magnitude > 255) {
-//            magnitude = 255;
-//        }
-
-//        // Set magnitude to 0 if doesn't exceed threshold, else set to magnitude
-//        if (magnitude > seuilFiltre) {
-//            magnitudes[i] = (unsigned int)magnitude;
-//        } else {
-//            magnitudes[i] = 0;
-//        }
-//    }
-
-//    int dataLength = m_width * m_height;
-////    int edges [dataLength] ;
-//    std::vector<int> edges;
-//    edges.resize(dataLength);
-
-//    // Apply the kernel values
-//    for (int i = 0; i < dataLength; i++){
-//        edges[i] = 0;
-//        int m = magnitudes[i];
-//        if (m != 0) {
-//            edges[i-1] = m;
-//        }
-////        std::cout << edges[i] << std::endl;
-//    }
-
-//    // Generate the new image with the sobel filter applied
-////    std::cout << edges.size() << std::endl;
-
-//    for (size_t i = 0; i < edges.size(); i ++) {
-//        copy[i] = (unsigned int)edges[i];
-//    }
 
     sauvegarder("sobel.pgm", copy, nH, nW);
     //----------------------------------------
     //Récupérer vertices
     echantillonageContour(copy, seuil, maxPoints, pointRate);
-
-    // qDebug()<<"m_vertices.size() ="<<m_vertices.size()<< Qt::endl;
 
     //Delaunay Triangulation
     delaunayTriangulation();
@@ -548,7 +449,6 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
             from = i; to = other_i;
             did_something = true;//*/
 
-//            std::cout << "Distance between group " << from << " and " << to << " is " << dist << std::endl;
             if(groups[to] != 0) std::swap(from,to);
             if(size_t other_group = groups[to]; other_group != 0)
             {
@@ -573,7 +473,6 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
                 mean.count += other_mean.count;
                 mean.mean /= mean.count;
             }
-//            std::cout << "Iteration done" << std::endl;
         }
 
         for(size_t i = 0; i < rag._regions.size(); ++i)
@@ -588,10 +487,6 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
                 }
             }
         }
-
-//        size_t lastindex = sringFilename.find_last_of("/");
-//        std::string rawname = sringFilename.substr(0, lastindex);
-//        qDebug()<< QString::fromStdString(rawname) <<Qt::endl;
 
         sauvegarder("split.pgm", copy, h, w);
 
@@ -616,28 +511,24 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
 
             a_index =getVertexIndex(m_vertices, A);
             if (a_index == -1){
-//                qDebug()<<"A not found"<< Qt::endl;
                 m_vertices.push_back(A);
                 a_index = k;
                 k++;
             }
             b_index =getVertexIndex(m_vertices, B);
             if (b_index == -1){
-//                qDebug()<<"B not found"<< Qt::endl;
                 m_vertices.push_back(B);
                 b_index = k;
                 k++;
             }
             c_index =getVertexIndex(m_vertices, C);
             if (c_index == -1){
-//                qDebug()<<"C not found"<< Qt::endl;
                 m_vertices.push_back(C);
                 c_index = k;
                 k++;
             }
             d_index =getVertexIndex(m_vertices, D);
             if (d_index == -1){
-//                qDebug()<<"D not found"<< Qt::endl;
                 m_vertices.push_back(D);
                 d_index = k;
                 k++;
@@ -645,8 +536,6 @@ void GenerateGrid::computeTriangulationSplitAndMerge(QString filename,double max
 
             t1 = {(unsigned int)a_index, (unsigned int)c_index, (unsigned int)d_index};
             t2 = {(unsigned int)a_index, (unsigned int)d_index, (unsigned int)b_index};
-//            qDebug()<<A<<B<<C<<D;
-//            qDebug()<<t1 <<t2<<Qt::endl;
         }
 
         //----------------------------------------

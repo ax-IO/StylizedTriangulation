@@ -62,9 +62,7 @@ bool MainWindow::loadFile(const QString &fileName)
 
 
   setImage(newImage);
-  //  loadImageToTexture(newImage);
   updateActions();
-  //  qDebug()<< << Qt::endl;
 
   setWindowFilePath(fileName);
 
@@ -75,38 +73,14 @@ bool MainWindow::loadFile(const QString &fileName)
                               .arg(image.depth());
   statusBar()->setFixedHeight(statusbar_height);
   statusBar()->showMessage(message);
-  //  statusbar_height = statusBar()->height();
-  //  qDebug() <<statusbar_height <<Qt::endl;
-
-  //    resize(image.width(), image.height());
 
   this->setFixedSize(QSize(image.width(), image.height() + filebar_height + statusbar_height));
-  //  resize(image.width(), image.height() + filebar_height + statusbar_height);
   //------------------------------------------------------------------------------------------
   openGL = new GLWidget(fileName, this);
 
-  //  image_to_display = openGL->grabFramebuffer();
-  //  if (image_to_display.colorSpace().isValid())
-  //    image_to_display.convertToColorSpace(QColorSpace::SRgb);
-  //  imageLabel->setPixmap(QPixmap::fromImage(image_to_display));
-
-  //  imageLabel->setBackgroundRole(QPalette::Base);
-  //  imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-  //  imageLabel->setScaledContents(true);
-
-  //  imageLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-  //  imageLabel->setText("first line\nsecond line");
-  //  imageLabel->setAlignment(Qt::AlignBottom | Qt::AlignRight);
-
-  //  scrollArea->setBackgroundRole(QPalette::Dark);
-  //  scrollArea->setWidget(imageLabel);
-  //  scrollArea->setVisible(true);
-
   setCentralWidget(openGL);
 
-  //  initializeRegularGridWindow();
   pgm_filename = QDir::toNativeSeparators(fileName).left(fileName.lastIndexOf('.')) + ".pgm";
-  //    qDebug() <<pgm_filepath <<Qt::endl;
   newImage.save(pgm_filename, "pgm", -1);
 
   //------------------------------------------------------------------------------------------
@@ -118,8 +92,7 @@ void MainWindow::createActions()
   menuBar()->setFixedHeight(filebar_height);
   QMenu *fileMenu = menuBar()->addMenu(tr("&Fichier"));
 
-  openAct =
-      fileMenu->addAction(tr("&Ouvrir Image..."), this, &MainWindow::open);
+  openAct = fileMenu->addAction(tr("&Ouvrir Image..."), this, &MainWindow::open);
   openAct->setShortcut(QKeySequence::Open);
 
   saveAsAct = fileMenu->addAction(tr("Enregistrer &sous..."), this,
@@ -231,27 +204,18 @@ void MainWindow::setImage(const QImage &newImage)
   image = newImage;
   if (image.colorSpace().isValid())
     image.convertToColorSpace(QColorSpace::SRgb);
-  //    imageLabel->setPixmap(QPixmap::fromImage(image));
   scaleFactor = 1.0;
 
-  //    scrollArea->setVisible(true);
-//  std::cout << image.width() << " "<<image.height() <<std::endl;
   if (image.width() == image.height())
   {
-//     std::cout << "carré"<<std::endl;
     isImageSquare = true;
   }
   else
   {
-//      std::cout << "pas carré"<<std::endl;
     isImageSquare = false;
   }
 
   updateActions();
-
-  //    if (!fitToWindowAct->isChecked())
-  //        imageLabel->adjustSize();
-
 
 }
 
@@ -286,13 +250,10 @@ static void initializeImageFileDialog(QFileDialog &dialog,
     mimeTypeFilters.append(mimeTypeName);
   mimeTypeFilters.sort();
   dialog.setMimeTypeFilters(mimeTypeFilters);
-  //  dialog.selectMimeTypeFilter("image/jpeg");
   dialog.selectMimeTypeFilter("image/png");
-  //  dialog.selectMimeTypeFilter("application/octet-stream");
 
   if (acceptMode == QFileDialog::AcceptSave)
-    dialog.setDefaultSuffix("jpg");
-  //    dialog.setDefaultSuffix("png");
+      dialog.setDefaultSuffix("png");
 }
 
 void MainWindow::open()
@@ -320,7 +281,6 @@ void MainWindow::saveAs()
 
 void MainWindow::zoomIn()
 {
-  // qDebug() << "Zoom In" << Qt::endl;
   openGL->resize(800, 800);
   resize(800, 800 + filebar_height + statusbar_height);
 }
@@ -333,19 +293,8 @@ void MainWindow::fitToWindow() {}
 void MainWindow::about()
 {
   QMessageBox::about(
-      this, tr("About Image Viewer"),
-      tr("<p>The <b>Image Viewer</b> example shows how to combine QLabel "
-         "and QScrollArea to display an image. QLabel is typically used "
-         "for displaying a text, but it can also display an image. "
-         "QScrollArea provides a scrolling view around another widget. "
-         "If the child widget exceeds the size of the frame, QScrollArea "
-         "automatically provides scroll bars. </p><p>The example "
-         "demonstrates how QLabel's ability to scale its contents "
-         "(QLabel::scaledContents), and QScrollArea's ability to "
-         "automatically resize its contents "
-         "(QScrollArea::widgetResizable), can be used to implement "
-         "zooming and scaling features. </p><p>In addition the example "
-         "shows how to use QPainter to print an image.</p>"));
+      this, tr("About StylizedTriangulation"),
+      tr(""));
 }
 
 //------------------------------------------------------------------------------------------
@@ -397,7 +346,6 @@ void MainWindow::initializeSplitGridWindow()
   splitMaxVarianceSpinBox->setRange(1, 10000);
   splitMaxVarianceSpinBox->setSingleStep(1);
   splitMaxVarianceSpinBox->setValue(500);
-  //    connect(splitMaxVarianceSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSplitGrid);
   QHBoxLayout *hbox = new QHBoxLayout;
   hbox->addWidget(SplitMaxVarianceLabel);
   hbox->addWidget(splitMaxVarianceSpinBox);
@@ -407,7 +355,6 @@ void MainWindow::initializeSplitGridWindow()
   splitMaxDistanceSpinBox->setRange(1, 10000);
   splitMaxDistanceSpinBox->setSingleStep(1);
   splitMaxDistanceSpinBox->setValue(5);
-  //    connect(splitMaxDistanceSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSplitGrid);
   QHBoxLayout *hbox2 = new QHBoxLayout;
   hbox2->addWidget(SplitMaxDistanceLabel);
   hbox2->addWidget(splitMaxDistanceSpinBox);
@@ -433,7 +380,6 @@ void MainWindow::initializeGradientGridWindow()
   gradientSeuilSpinBox->setRange(0, 10000);
   gradientSeuilSpinBox->setSingleStep(1);
   gradientSeuilSpinBox->setValue(2);
-  //    connect(gradientSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
   QHBoxLayout *hbox = new QHBoxLayout;
   hbox->addWidget(GradientSeuilLabel);
   hbox->addWidget(gradientSeuilSpinBox);
@@ -443,7 +389,6 @@ void MainWindow::initializeGradientGridWindow()
   gradientMaxPointsSpinBox->setRange(5, 10000);
   gradientMaxPointsSpinBox->setSingleStep(1);
   gradientMaxPointsSpinBox->setValue(300);
-  //    connect(gradientMaxPointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
   QHBoxLayout *hbox2 = new QHBoxLayout;
   hbox2->addWidget(SplitMaxPointsLabel);
   hbox2->addWidget(gradientMaxPointsSpinBox);
@@ -453,7 +398,6 @@ void MainWindow::initializeGradientGridWindow()
   gradientPointRateSpinBox->setRange(0, 1);
   gradientPointRateSpinBox->setSingleStep(0.01);
   gradientPointRateSpinBox->setValue(0.88);
-  //    connect(gradientPointRateSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::callUpdateGradientGrid);
   QHBoxLayout *hbox3 = new QHBoxLayout;
   hbox3->addWidget(GradientPointRateLabel);
   hbox3->addWidget(gradientPointRateSpinBox);
@@ -480,7 +424,6 @@ void MainWindow::initializeSobelGridWindow()
   sobelSeuilFiltreSpinBox->setRange(0, 255);
   sobelSeuilFiltreSpinBox->setSingleStep(1);
   sobelSeuilFiltreSpinBox->setValue(128);
-  //    connect(sobelSeuilFiltreSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
   QHBoxLayout *hbox0 = new QHBoxLayout;
   hbox0->addWidget(SobelSeuilFiltreLabel);
   hbox0->addWidget(sobelSeuilFiltreSpinBox);
@@ -490,7 +433,6 @@ void MainWindow::initializeSobelGridWindow()
   sobelSeuilSpinBox->setRange(1, 10000);
   sobelSeuilSpinBox->setSingleStep(1);
   sobelSeuilSpinBox->setValue(128);
-  //    connect(sobelSeuilSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
   QHBoxLayout *hbox = new QHBoxLayout;
   hbox->addWidget(SobelSeuilLabel);
   hbox->addWidget(sobelSeuilSpinBox);
@@ -500,7 +442,6 @@ void MainWindow::initializeSobelGridWindow()
   sobelMaxPointsSpinBox->setRange(5, 10000);
   sobelMaxPointsSpinBox->setSingleStep(1);
   sobelMaxPointsSpinBox->setValue(300);
-  //    connect(sobelMaxPointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
   QHBoxLayout *hbox2 = new QHBoxLayout;
   hbox2->addWidget(SobelMaxPointsLabel);
   hbox2->addWidget(sobelMaxPointsSpinBox);
@@ -510,7 +451,6 @@ void MainWindow::initializeSobelGridWindow()
   sobelPointRateSpinBox->setRange(0, 1);
   sobelPointRateSpinBox->setSingleStep(0.01);
   sobelPointRateSpinBox->setValue(0.88);
-  //    connect(sobelPointRateSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::callUpdateSobelGrid);
   QHBoxLayout *hbox3 = new QHBoxLayout;
   hbox3->addWidget(SobelPointRateLabel);
   hbox3->addWidget(sobelPointRateSpinBox);
@@ -530,7 +470,6 @@ void MainWindow::initializeSobelGridWindow()
 }
 void MainWindow::initializeOptimizationContinuousWindow()
 {
-//  qDebug() << "Optimisation en continu" << Qt::endl;
   optimisationWindow->setAttribute( Qt::WA_QuitOnClose, false );
 
   QLabel *OptimizationEnergySplitThresholdLabel = new QLabel(tr("Seuil Énergie pour split: "));
@@ -546,9 +485,9 @@ void MainWindow::initializeOptimizationContinuousWindow()
   QLabel *OptimizationMinTriangleAreaLabel = new QLabel(tr("Aire du triangle minimum: "));
   optimizationMinTriangleAreaSpinBox = new QDoubleSpinBox();
   optimizationMinTriangleAreaSpinBox->setDecimals(4);
-  optimizationMinTriangleAreaSpinBox->setRange(0.0001, 10);
+  optimizationMinTriangleAreaSpinBox->setRange(0.0000, 10);
   optimizationMinTriangleAreaSpinBox->setSingleStep(0.0001);
-  optimizationMinTriangleAreaSpinBox->setValue(0.001);
+  optimizationMinTriangleAreaSpinBox->setValue(0.0000);
   QHBoxLayout *hbox5 = new QHBoxLayout;
   hbox5->addWidget(OptimizationMinTriangleAreaLabel);
   hbox5->addWidget(optimizationMinTriangleAreaSpinBox);
@@ -599,7 +538,6 @@ void MainWindow::initializeOptimizationContinuousWindow()
 void MainWindow::callChangeResolution()
 {
   int resolution = resolutionSpinBox->value();
-  //    qDebug()<<"Change Resolution"<< resolution;
   openGL->changeRegularGridResolution(resolution);
   openGL->update();
 }
@@ -640,7 +578,6 @@ void MainWindow::callRenderModeGradient()
 //------------------------------------------------------------------------------------------
 void MainWindow::callOptimizationNormalPass()
 {
-//   qDebug() << "callOptimizationPass() :";
   if (isOptimisationWindowInitialized)
   {
       openGL->optimizationPass(optimizationEnergySplitThresholdSpinBox->value(), optimizationMinTriangleAreaSpinBox->value());
@@ -653,7 +590,6 @@ void MainWindow::callOptimizationNormalPass()
 }
 void MainWindow::callOptimizationSplitPass()
 {
-  // qDebug() << "callOptimizationSplitPass() :";
   if (isOptimisationWindowInitialized)
   {
       openGL->optimizationSplitPass(optimizationEnergySplitThresholdSpinBox->value(), optimizationMinTriangleAreaSpinBox->value());
@@ -668,24 +604,18 @@ void MainWindow::callOptimizationSplitPass()
 
 void MainWindow::callOptimizationTypeChangeToNormal()
 {
-  // qDebug() << "Change to normal" << Qt::endl;
   optimisationType = NORMAL;
 }
 void MainWindow::callOptimizationTypeChangeToSplit()
 {
-  // qDebug() << "Change to split" << Qt::endl;
   optimisationType = SPLIT;
 }
 void MainWindow::callOptimizationContinuousPause()
 {
-  // qDebug() << "Pause" << Qt::endl;
-
   optimisationTimer->stop();
 }
 void MainWindow::callOptimizationContinuousPlay()
 {
-  // qDebug() << "Play" << Qt::endl;
-
   optimisationTimer->start(optimisationTimeInterval);
 }
 void MainWindow::callOptimizationPass()
@@ -702,6 +632,4 @@ void MainWindow::callOptimizationPass()
 void MainWindow::callChangeOptimizationSpeed()
 {
   optimisationTimeInterval = (int)1000 - optimizationSpeedSpinBox->value();
-
-//  optimisationTimer->start(optimisationTimeInterval);
 }
