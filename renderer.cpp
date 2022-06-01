@@ -200,8 +200,8 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
 
         // DRAW
         indice_buffer.bind();
-        if (m_edges)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//        if (m_edges)
+//            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         gl_fct->glDrawElements(GL_TRIANGLES, tri.triangles().size() * 3, GL_UNSIGNED_INT, nullptr);
 
         if (style == COLOR_GRADIENT && first_pass)
@@ -289,6 +289,7 @@ void Renderer::render(const Triangulation &tri, unsigned int tex, int style)
         }
 
         program[i].release();
+        gl_fct->glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
     // CLEAN
