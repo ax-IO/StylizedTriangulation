@@ -1,4 +1,15 @@
+# Stylized Image Triangulation
+<p align="center">
+  <img src="report/Optimisation_continue.png" width="480">
+</p>
+
 An application to automatically generate abstract triangulated images with several methods to generate and render these triangles  [[1]](#1) [[2]](#2) [[3]](#3) [[4]](#4).
+
+## Examples of output
+<p align="center">
+  <img src="Images/Triangulated images/lion.png" width="480">
+  <img src="Images/Triangulated images/passion_triangule.png" width="480">
+</p>
 
 ## References
 <a id="1">[1]</a> 
